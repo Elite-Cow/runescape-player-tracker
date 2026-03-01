@@ -9,22 +9,20 @@ function cutoff(days) {
   return new Date(Date.now() - days * DAY);
 }
 
-const round = { $round: ["$$val", 0] };
-
 function avgProject(field) {
   return { $round: [`$${field}`, 0] };
 }
 
-async function rawQuery(since) {
-  return PlayerCount.find({ timestamp: { $gte: since } })
+async function rawQuery(since, filter) {
+  return PlayerCount.find({ timestamp: { $gte: since }, ...filter })
     .sort({ timestamp: 1 })
     .select("-_id timestamp total_players osrs rs3")
     .lean();
 }
 
-async function groupedQuery(since, groupId) {
+async function groupedQuery(since, groupId, filter) {
   return PlayerCount.aggregate([
-    { $match: { timestamp: { $gte: since } } },
+    { $match: { timestamp: { $gte: since }, ...filter } },
     {
       $group: {
         _id: groupId,
@@ -65,13 +63,16 @@ const WEEKLY_ID = {
   w: { $isoWeek: "$timestamp" },
 };
 
+const OSRS_FILTER = { osrs: { $gt: 0 } };
+const RS3_FILTER  = { rs3:  { $gt: 0 } };
+
 const RANGE_CONFIG = {
-  "24h": () => rawQuery(cutoff(1)),
-  "7d": () => rawQuery(cutoff(7)),
-  "30d": () => groupedQuery(cutoff(30), HOURLY_ID),
-  "6m": () => groupedQuery(cutoff(182), DAILY_ID),
-  "1y": () => groupedQuery(cutoff(365), DAILY_ID),
-  all: () => groupedQuery(new Date(0), WEEKLY_ID),
+  "24h": (f) => rawQuery(cutoff(1),   f),
+  "7d":  (f) => rawQuery(cutoff(7),   f),
+  "30d": (f) => groupedQuery(cutoff(30),  HOURLY_ID, f),
+  "6m":  (f) => groupedQuery(cutoff(182), DAILY_ID,  f),
+  "1y":  (f) => groupedQuery(cutoff(365), DAILY_ID,  f),
+  all:   (f) => groupedQuery(new Date(0), WEEKLY_ID, f),
 };
 
 router.get("/", async (req, res) => {
@@ -83,8 +84,11 @@ router.get("/", async (req, res) => {
 
   try {
     await connectDB();
-    const data = await RANGE_CONFIG[range]();
-    res.json(data);
+    const [osrs, rs3] = await Promise.all([
+      RANGE_CONFIG[range](OSRS_FILTER),
+      RANGE_CONFIG[range](RS3_FILTER),
+    ]);
+    res.json({ osrs, rs3 });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

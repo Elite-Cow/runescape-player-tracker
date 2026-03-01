@@ -31,18 +31,18 @@ function formatCount(n) {
 }
 
 export default function PlayerChart({ data, range }) {
-  if (!data || data.length === 0) {
+  const osrsPoints = data?.osrs ?? [];
+  const rs3Points  = data?.rs3  ?? [];
+
+  if (osrsPoints.length === 0 && rs3Points.length === 0) {
     return <p style={{ textAlign: "center", color: "#666" }}>No data available.</p>;
   }
 
-  const labels = data.map((d) => new Date(d.timestamp));
-
   const chartData = {
-    labels,
     datasets: [
       {
         label: "Total Players",
-        data: data.map((d) => d.total_players),
+        data: osrsPoints.map((d) => ({ x: new Date(d.timestamp), y: d.total_players })),
         borderColor: "#c8a84b",
         backgroundColor: "rgba(200,168,75,0.08)",
         pointRadius: 0,
@@ -51,7 +51,7 @@ export default function PlayerChart({ data, range }) {
       },
       {
         label: "OSRS",
-        data: data.map((d) => d.osrs),
+        data: osrsPoints.map((d) => ({ x: new Date(d.timestamp), y: d.osrs })),
         borderColor: "#5ba3f5",
         backgroundColor: "rgba(91,163,245,0.08)",
         pointRadius: 0,
@@ -60,7 +60,7 @@ export default function PlayerChart({ data, range }) {
       },
       {
         label: "RS3",
-        data: data.map((d) => d.rs3),
+        data: rs3Points.map((d) => ({ x: new Date(d.timestamp), y: d.rs3 })),
         borderColor: "#e05c5c",
         backgroundColor: "rgba(224,92,92,0.08)",
         pointRadius: 0,
@@ -92,6 +92,7 @@ export default function PlayerChart({ data, range }) {
         callbacks: {
           title: (items) => new Date(items[0].parsed.x).toLocaleString(),
           label: (item) => `${item.dataset.label}: ${formatCount(item.parsed.y)}`,
+          filter: (item) => item.parsed.y > 0,
         },
       },
     },
