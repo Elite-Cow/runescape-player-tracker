@@ -6,7 +6,7 @@ const router = Router();
 const DAY = 24 * 60 * 60 * 1000;
 
 const THRESHOLDS = {
-  "24h": 1 * DAY,
+  "24h": 0,
   "7d": 7 * DAY,
   "30d": 30 * DAY,
   "6m": 182 * DAY,
