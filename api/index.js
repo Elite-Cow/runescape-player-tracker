@@ -5,6 +5,7 @@ const cors = require("cors");
 const latestRouter = require("./routes/latest");
 const historyRouter = require("./routes/history");
 const availabilityRouter = require("./routes/availability");
+const rs3testRouter = require("./routes/rs3test");
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.use(express.json());
 app.use("/api/latest", latestRouter);
 app.use("/api/history", historyRouter);
 app.use("/api/availability", availabilityRouter);
+app.use("/api/rs3test", rs3testRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });
