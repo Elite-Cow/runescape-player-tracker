@@ -1,61 +1,37 @@
-// MongoDB Atlas Scheduled Function — RS3 player count ingestion
-// Trigger: 0 0 * * * (daily at midnight UTC) — TempleOSRS updates weekly
+// MongoDB Atlas Scheduled Function — RS3 player count ingestion via RunePixels API
+// Trigger: 0 * * * * (hourly UTC)
 // Linked data source: mongodb-atlas → runescape_stats.player_counts
 //
-// Scrapes RS3 (EOC) player counts from TempleOSRS's embedded historical arrays.
-// Only inserts entries not already present. Does NOT touch OSRS data.
+// Fetches RS3 player counts from the RunePixels public API:
+//   https://api.runepixels.com/players/online?month=M&year=Y
+//   Response: [{ createdAt: "2026-03-01T00:00:00Z", count: 24080 }, ...]
+// Only inserts records newer than the most recent RS3 entry in the DB.
 
 exports = async function () {
-  const URL = "https://templeosrs.com/players/overview.php";
+  const now = new Date();
+  const month = now.getUTCMonth() + 1;
+  const year  = now.getUTCFullYear();
+
+  const URL = `https://api.runepixels.com/players/online?month=${month}&year=${year}`;
 
   const HEADERS = {
-    "User-Agent": ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"],
-    "Accept": ["text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"],
+    "User-Agent": ["Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"],
+    "Accept": ["application/json"],
   };
 
-  // --- Fetch TempleOSRS page ---
-  let html;
+  // --- Fetch RunePixels API ---
+  let data;
   try {
     const res = await context.http.get({ url: URL, headers: HEADERS });
-    html = res.body.text();
+    data = JSON.parse(res.body.text());
   } catch (err) {
-    console.error("Failed to fetch TempleOSRS:", err.message);
+    console.error("Failed to fetch RunePixels:", err.message);
     return;
   }
 
-  // --- Extract arrays ---
-  const eocMatch   = html.match(/var\s+eocPlayerCount\s*=\s*(\[[\d,\s]+\])/);
-  const datesMatch = html.match(/var\s+osrsDates\s*=\s*(\[(?:"[^"]*"(?:,\s*"[^"]*")*)?\])/);
-
-  if (!eocMatch || !datesMatch) {
-    console.error("Could not find RS3 data arrays. eocPlayerCount found:", !!eocMatch, "osrsDates found:", !!datesMatch);
+  if (!Array.isArray(data) || data.length === 0) {
+    console.error("No data returned from RunePixels for", year, month);
     return;
-  }
-
-  const eocCounts = JSON.parse(eocMatch[1]);
-  const dates     = JSON.parse(datesMatch[1]);
-
-  if (eocCounts.length !== dates.length) {
-    console.error(`Array length mismatch: ${eocCounts.length} counts vs ${dates.length} dates`);
-    return;
-  }
-
-  // --- Parse "DD/MM/YYYY HH:MM:SS" → UTC Date ---
-  function parseDate(str) {
-    const [datePart, timePart = "00:00:00"] = str.trim().split(" ");
-    const [dd, mm, yyyy] = datePart.split("/");
-    return new Date(`${yyyy}-${mm}-${dd}T${timePart}Z`);
-  }
-
-  // --- Only check the most recent 5 entries to avoid full re-scan ---
-  const recent = [];
-  for (let i = eocCounts.length - 5; i < eocCounts.length; i++) {
-    const timestamp = parseDate(dates[i]);
-    if (isNaN(timestamp.getTime())) {
-      console.warn(`Skipping invalid date at index ${i}: "${dates[i]}"`);
-      continue;
-    }
-    recent.push({ timestamp, rs3: eocCounts[i] });
   }
 
   const collection = context.services
@@ -63,21 +39,33 @@ exports = async function () {
     .db("runescape_stats")
     .collection("player_counts");
 
-  // --- Insert any entries not already in DB ---
-  let inserted = 0;
-  for (const entry of recent) {
-    const existing = await collection.findOne({ timestamp: entry.timestamp, rs3: { $gt: 0 } });
-    if (existing) continue;
+  // --- Find most recent RS3 record to skip already-inserted data ---
+  const latest = await collection.findOne(
+    { rs3: { $gt: 0 } },
+    { sort: { timestamp: -1 } }
+  );
 
+  const cutoff = latest ? latest.timestamp : new Date(0);
+
+  const newDocs = data
+    .filter((d) => new Date(d.createdAt) > cutoff)
+    .map((d) => ({
+      timestamp: new Date(d.createdAt),
+      rs3: d.count,
+      osrs: 0,
+      total_players: d.count,
+    }));
+
+  if (newDocs.length === 0) {
+    console.log("No new RS3 records to insert.");
+    return;
+  }
+
+  let inserted = 0;
+  for (const doc of newDocs) {
     try {
-      await collection.insertOne({
-        timestamp: entry.timestamp,
-        rs3: entry.rs3,
-        osrs: 0,
-        total_players: entry.rs3,
-      });
+      await collection.insertOne(doc);
       inserted++;
-      console.log(`Inserted RS3: timestamp=${entry.timestamp.toISOString()}, rs3=${entry.rs3}`);
     } catch (err) {
       console.error("Insert failed:", err.message);
     }
