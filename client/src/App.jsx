@@ -142,8 +142,16 @@ export default function App() {
       {latest && (
         <div style={styles.latest}>
           <div style={styles.stat}>
-            <div style={styles.statLabel}>OSRS Players</div>
+            <div style={styles.statLabel}>Total</div>
+            <div style={styles.statValue("#c8a84b")}>{formatCount(latest.total_players)}</div>
+          </div>
+          <div style={styles.stat}>
+            <div style={styles.statLabel}>OSRS</div>
             <div style={styles.statValue("#5ba3f5")}>{formatCount(latest.osrs)}</div>
+          </div>
+          <div style={styles.stat}>
+            <div style={styles.statLabel}>RS3</div>
+            <div style={styles.statValue("#e05c5c")}>{formatCount(latest.rs3)}</div>
           </div>
         </div>
       )}
