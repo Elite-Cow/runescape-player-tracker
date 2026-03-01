@@ -16,7 +16,7 @@ router.get("/", async (req, res) => {
     res.json({
       timestamp:    osrsDoc.timestamp,
       osrs:         osrsDoc.osrs,
-      total_players: osrsDoc.total_players,
+      total_players: osrsDoc.osrs + (rs3Doc ? rs3Doc.rs3 : 0),
       rs3:          rs3Doc ? rs3Doc.rs3 : 0,
     });
   } catch (err) {

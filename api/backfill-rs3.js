@@ -1,5 +1,4 @@
 // One-time backfill script: pulls RS3 player counts from RunePixels API (2023–now).
-// Also deletes stale rs3-only records (osrs=0) from the old TempleOSRS ingest.
 //
 // Usage (from the api/ directory):
 //   node backfill-rs3.js
@@ -33,10 +32,6 @@ async function main() {
   await mongoose.connect(process.env.MONGODB_URI);
   const collection = mongoose.connection.db.collection("player_counts");
 
-  // --- Delete stale rs3-only records from old TempleOSRS ingest ---
-  const { deletedCount } = await collection.deleteMany({ osrs: 0, rs3: { $gt: 0 } });
-  console.log(`Deleted ${deletedCount} stale RS3-only records (osrs=0).`);
-
   // --- Backfill RunePixels data from Jan 2023 to current month ---
   const now = new Date();
   let totalInserted = 0;
@@ -63,12 +58,16 @@ async function main() {
           total_players: d.count,
         }));
 
+        // insertMany silently drops docs on Atlas Time Series collections after a few batches.
+        // Use insertOne per document to guarantee writes actually persist.
         let inserted = 0;
-        try {
-          const result = await collection.insertMany(docs, { ordered: false });
-          inserted = result.insertedCount;
-        } catch (err) {
-          inserted = err.result?.insertedCount ?? 0;
+        for (const doc of docs) {
+          try {
+            await collection.insertOne(doc);
+            inserted++;
+          } catch (err) {
+            // skip duplicates or other per-doc errors
+          }
         }
 
         totalInserted += inserted;
