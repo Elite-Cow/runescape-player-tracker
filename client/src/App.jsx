@@ -102,7 +102,7 @@ export default function App() {
           setLatest(await latestRes.json());
         }
 
-        const range = bestRange(avail);
+        const range = avail["24h"] ? "24h" : bestRange(avail);
         if (range) setSelectedRange(range);
         else setError("No data available yet. Check back soon.");
       } catch (err) {
