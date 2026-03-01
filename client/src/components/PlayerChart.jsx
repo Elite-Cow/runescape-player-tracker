@@ -24,42 +24,12 @@ ChartJS.register(
   TimeScale
 );
 
+import { buildTotalData } from "../buildTotal";
+
 function formatCount(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
   if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
   return String(n);
-}
-
-// Binary search: find the rs3Points index whose timestamp is nearest to t (ms).
-function nearestRs3(rs3Sorted, t) {
-  let lo = 0, hi = rs3Sorted.length - 1, best = 0;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    const mt = rs3Sorted[mid]._t;
-    if (Math.abs(mt - t) < Math.abs(rs3Sorted[best]._t - t)) best = mid;
-    if (mt < t) lo = mid + 1;
-    else hi = mid - 1;
-  }
-  return rs3Sorted[best];
-}
-
-// Compute total = osrs + rs3, handling two cases:
-//   - Pre-2023 TempleOSRS records already have rs3 embedded → use total_players as-is.
-//   - Post-2023 records have rs3=0 → add the nearest RS3 point within 12 hours.
-function buildTotalData(osrsPoints, rs3Points) {
-  const TWELVE_HOURS = 12 * 3600 * 1000;
-  const rs3Sorted = rs3Points
-    .map((d) => ({ _t: new Date(d.timestamp).getTime(), rs3: d.rs3 }))
-    .sort((a, b) => a._t - b._t);
-
-  return osrsPoints.map((d) => {
-    const x = new Date(d.timestamp);
-    if (d.rs3 > 0) return { x, y: d.total_players };
-    if (rs3Sorted.length === 0) return { x, y: d.osrs };
-    const nearest = nearestRs3(rs3Sorted, x.getTime());
-    const rs3Val = Math.abs(nearest._t - x.getTime()) <= TWELVE_HOURS ? nearest.rs3 : 0;
-    return { x, y: d.osrs + rs3Val };
-  });
 }
 
 export default function PlayerChart({ data, range }) {
