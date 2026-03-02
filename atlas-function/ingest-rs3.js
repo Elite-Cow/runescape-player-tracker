@@ -65,6 +65,11 @@ exports = async function () {
   let inserted = 0;
   for (const doc of newDocs) {
     try {
+      const exists = await collection.findOne({ timestamp: doc.timestamp, rs3: { $gt: 0 } });
+      if (exists) {
+        console.log("Skipping duplicate:", doc.timestamp);
+        continue;
+      }
       await collection.insertOne(doc);
       inserted++;
     } catch (err) {
