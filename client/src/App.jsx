@@ -81,6 +81,7 @@ function bestRange(availability) {
 export default function App() {
   const [availability, setAvailability] = useState({});
   const [selectedRange, setSelectedRange] = useState(null);
+  const [loadedRange, setLoadedRange] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [peaks, setPeaks] = useState(null);
   const [loadingChart, setLoadingChart] = useState(false);
@@ -120,6 +121,7 @@ export default function App() {
         if (cancelled) return;
 
         setChartData(data);
+        setLoadedRange(selectedRange);
         const osrsPoints  = data.osrs ?? [];
         const rs3Points   = data.rs3  ?? [];
         const totalPoints = buildTotalData(osrsPoints, rs3Points);
@@ -171,7 +173,7 @@ export default function App() {
       <div style={styles.chartWrap}>
         {error ? (
           <div style={styles.error}>{error}</div>
-        ) : loadingChart ? (
+        ) : loadingChart || loadedRange !== selectedRange ? (
           <div style={styles.loading}>Loading...</div>
         ) : (
           <PlayerChart data={chartData} range={selectedRange} />
