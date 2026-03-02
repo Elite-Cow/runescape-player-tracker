@@ -96,11 +96,25 @@ async function fetchYouTubeFeed(channelId, game, sourceName) {
   }
 }
 
+async function getSubredditImage(subreddit) {
+  try {
+    const json = await httpGet(`https://www.reddit.com/r/${subreddit}/about.json`, { Accept: "application/json" });
+    const data = JSON.parse(json).data;
+    const url = data.banner_img || data.community_icon || data.icon_img || null;
+    return url ? url.split("?")[0] : null;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchRedditFeed(subreddit, game) {
   const url = `https://www.reddit.com/r/${subreddit}/.rss`;
   const sourceName = `r/${subreddit}`;
   try {
-    const xml = await httpGet(url);
+    const [xml, fallbackImage] = await Promise.all([
+      httpGet(url),
+      getSubredditImage(subreddit),
+    ]);
     const result = await parser.parseStringPromise(xml);
     const raw = result.feed
       ? result.feed.entry
@@ -110,12 +124,14 @@ async function fetchRedditFeed(subreddit, game) {
     if (!raw) return [];
     const items = Array.isArray(raw) ? raw : [raw];
     return items.map((item) => {
-      const image = extractImage(item) || null;
+      const image = extractImage(item) || fallbackImage;
       const contentRaw = item.description || item.content;
       const contentStr = typeof contentRaw === "string"
         ? contentRaw
         : (contentRaw && contentRaw._ ? contentRaw._ : "");
-      const description = stripHtml(contentStr);
+      // Strip Reddit's "submitted by /u/..." footer before processing
+      const cleaned = contentStr.replace(/(&#32;\s*)?submitted by[\s\S]*/i, "");
+      const description = stripHtml(cleaned);
       const linkEl = item.link;
       const link = typeof linkEl === "string"
         ? linkEl
