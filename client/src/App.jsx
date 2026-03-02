@@ -107,18 +107,21 @@ export default function App() {
   // Fetch chart data when range changes
   useEffect(() => {
     if (!selectedRange) return;
+    let cancelled = false;
 
-    async function loadHistory() {
-      setLoadingChart(true);
-      setError(null);
+    setLoadingChart(true);
+    setError(null);
+
+    (async () => {
       try {
         const res = await fetch(`/api/history?range=${selectedRange}`);
         if (!res.ok) throw new Error("Failed to load history");
         const data = await res.json();
-        setChartData(data);
+        if (cancelled) return;
 
-        const osrsPoints = data.osrs ?? [];
-        const rs3Points  = data.rs3  ?? [];
+        setChartData(data);
+        const osrsPoints  = data.osrs ?? [];
+        const rs3Points   = data.rs3  ?? [];
         const totalPoints = buildTotalData(osrsPoints, rs3Points);
         setPeaks({
           total: totalPoints.length ? Math.max(...totalPoints.map((d) => d.y)) : 0,
@@ -126,12 +129,13 @@ export default function App() {
           rs3:   rs3Points.length   ? Math.max(...rs3Points.map((d) => d.rs3))  : 0,
         });
       } catch (err) {
-        setError(err.message);
+        if (!cancelled) setError(err.message);
       } finally {
-        setLoadingChart(false);
+        if (!cancelled) setLoadingChart(false);
       }
-    }
-    loadHistory();
+    })();
+
+    return () => { cancelled = true; };
   }, [selectedRange]);
 
   return (
