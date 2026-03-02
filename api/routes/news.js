@@ -111,8 +111,11 @@ async function fetchRedditFeed(subreddit, game) {
     const items = Array.isArray(raw) ? raw : [raw];
     return items.map((item) => {
       const image = extractImage(item) || null;
-      const descRaw = item.description || item.content || "";
-      const description = stripHtml(Array.isArray(descRaw) ? descRaw[0] : descRaw);
+      const contentRaw = item.description || item.content;
+      const contentStr = typeof contentRaw === "string"
+        ? contentRaw
+        : (contentRaw && contentRaw._ ? contentRaw._ : "");
+      const description = stripHtml(contentStr);
       const linkEl = item.link;
       const link = typeof linkEl === "string"
         ? linkEl
