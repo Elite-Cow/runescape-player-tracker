@@ -10,14 +10,23 @@ const OSRS_FEED = "https://secure.runescape.com/m=news/latest_news.rss?oldschool
 
 let cache = { data: null, expiresAt: 0 };
 
-function httpGet(url, headers = {}) {
+function httpGet(url) {
   return new Promise((resolve, reject) => {
-    const defaultHeaders = {
-      "User-Agent": "rs-tracker/1.0 by rs-tracker-app",
-      "Accept": "application/rss+xml, application/atom+xml, text/xml",
-    };
     https
-      .get(url, { headers: { ...defaultHeaders, ...headers } }, (res) => {
+      .get(url, { headers: { "User-Agent": "rs-tracker/1.0 by rs-tracker-app", "Accept": "application/rss+xml, application/atom+xml, text/xml" } }, (res) => {
+        let data = "";
+        res.on("data", (chunk) => (data += chunk));
+        res.on("end", () => resolve(data));
+      })
+      .on("error", reject);
+  });
+}
+
+// Reddit's about.json requires NO Accept header — any Accept value triggers HTML response
+function httpGetNoAccept(url) {
+  return new Promise((resolve, reject) => {
+    https
+      .get(url, { headers: { "User-Agent": "rs-tracker/1.0 by rs-tracker-app" } }, (res) => {
         let data = "";
         res.on("data", (chunk) => (data += chunk));
         res.on("end", () => resolve(data));
@@ -98,7 +107,7 @@ async function fetchYouTubeFeed(channelId, game, sourceName) {
 
 async function getSubredditImage(subreddit) {
   try {
-    const json = await httpGet(`https://www.reddit.com/r/${subreddit}/about.json`, { Accept: "application/json" });
+    const json = await httpGetNoAccept(`https://www.reddit.com/r/${subreddit}/about.json`);
     const data = JSON.parse(json).data;
     const url = data.banner_img || data.community_icon || data.icon_img || null;
     return url ? url.split("?")[0] : null;
