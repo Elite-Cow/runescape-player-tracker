@@ -1,11 +1,11 @@
 // MongoDB Atlas Scheduled Function
-// Trigger: */5 * * * * (UTC)
+// Trigger: 0 * * * * (UTC, hourly — aligned with RS3 ingest)
 // Linked data source: mongodb-atlas → runescape_stats.player_counts
 //
 // OSRS player count is scraped from:
 //   https://oldschool.runescape.com/  ("There are currently X people playing!")
-// RS3 is stored as 0 until a reliable source is found.
-// total_players = osrs (rs3 omitted for now)
+// RS3 is tracked separately via ingest-rs3.js (RunePixels API, also hourly).
+// total_players = osrs (RS3 records are separate documents)
 
 exports = async function () {
   const OSRS_URL = "https://oldschool.runescape.com/";
