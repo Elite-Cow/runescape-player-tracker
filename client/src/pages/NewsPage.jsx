@@ -8,7 +8,7 @@ const styles = {
   },
   header: {
     textAlign: "center",
-    marginBottom: "32px",
+    marginBottom: "24px",
   },
   title: {
     fontSize: "28px",
@@ -20,6 +20,24 @@ const styles = {
     fontSize: "13px",
     color: "#666",
   },
+  filterRow: {
+    display: "flex",
+    gap: "10px",
+    marginBottom: "24px",
+    flexWrap: "wrap",
+    justifyContent: "center",
+  },
+  pill: (active) => ({
+    padding: "6px 16px",
+    borderRadius: "20px",
+    fontSize: "13px",
+    fontWeight: "600",
+    cursor: "pointer",
+    border: "1px solid",
+    borderColor: active ? "#c8a84b" : "#333",
+    background: active ? "#c8a84b" : "transparent",
+    color: active ? "#111" : "#666",
+  }),
   grid: {
     display: "grid",
     gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
@@ -71,6 +89,10 @@ const styles = {
     color: "#e0e0e0",
     lineHeight: "1.4",
   },
+  sourceName: {
+    fontSize: "12px",
+    color: "#555",
+  },
   excerpt: {
     fontSize: "13px",
     color: "#888",
@@ -101,6 +123,12 @@ const styles = {
   },
 };
 
+const FILTER_OPTIONS = [
+  { key: "official", label: "Official" },
+  { key: "youtube",  label: "YouTube" },
+  { key: "reddit",   label: "Reddit"  },
+];
+
 function formatDate(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -108,24 +136,43 @@ function formatDate(dateStr) {
 }
 
 export default function NewsPage() {
-  const [articles, setArticles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [articles, setArticles]           = useState([]);
+  const [loading, setLoading]             = useState(true);
+  const [error, setError]                 = useState(null);
+  const [activeFilters, setActiveFilters] = useState(new Set(["official", "youtube", "reddit"]));
 
   useEffect(() => {
-    async function load() {
+    async function load(initial = false) {
       try {
         const res = await fetch("/api/news");
         if (!res.ok) throw new Error("Failed to load news");
         setArticles(await res.json());
+        if (initial) setError(null);
       } catch (err) {
-        setError(err.message);
+        if (initial) setError(err.message);
       } finally {
-        setLoading(false);
+        if (initial) setLoading(false);
       }
     }
-    load();
+
+    load(true);
+    const id = setInterval(() => load(false), 15 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
+
+  function toggleFilter(key) {
+    setActiveFilters((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
+  const filtered = articles.filter((a) => activeFilters.has(a.sourceType));
 
   return (
     <div style={styles.wrapper}>
@@ -134,15 +181,27 @@ export default function NewsPage() {
         <div style={styles.subtitle}>Latest updates from RS3 and Old School RuneScape</div>
       </div>
 
+      <div style={styles.filterRow}>
+        {FILTER_OPTIONS.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => toggleFilter(key)}
+            style={styles.pill(activeFilters.has(key))}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div style={styles.loading}>Loading articles...</div>
       ) : error ? (
         <div style={styles.error}>{error}</div>
-      ) : articles.length === 0 ? (
+      ) : filtered.length === 0 ? (
         <div style={styles.empty}>No articles found.</div>
       ) : (
         <div style={styles.grid}>
-          {articles.map((article) => (
+          {filtered.map((article) => (
             <div key={article.link} style={styles.card}>
               {article.image && (
                 <img
@@ -160,6 +219,9 @@ export default function NewsPage() {
                   <span style={styles.date}>{formatDate(article.pubDate)}</span>
                 </div>
                 <div style={styles.cardTitle}>{article.title}</div>
+                {article.sourceName && (
+                  <div style={styles.sourceName}>{article.sourceName}</div>
+                )}
                 {article.description && (
                   <div style={styles.excerpt}>{article.description}</div>
                 )}
