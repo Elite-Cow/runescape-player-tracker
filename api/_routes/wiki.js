@@ -9,7 +9,7 @@ const TTL_1H = 60 * 60 * 1000;
 function fetchJson(url) {
   return new Promise((resolve, reject) => {
     https
-      .get(url, { headers: { "User-Agent": "RS-Player-Tracker/1.0 (https://rs-player-tracker.vercel.app)" } }, (res) => {
+      .get(url, { headers: { "User-Agent": "RS-Player-Tracker/1.0 (https://rs-player-tracker.vercel.app; rs-player-tracker@users.noreply.github.com)" } }, (res) => {
         if (res.statusCode !== 200) {
           return reject(new Error(`Wiki API returned ${res.statusCode}`));
         }
