@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import {
   Chart as ChartJS,
+  LineController,
   LinearScale,
   PointElement,
   LineElement,
@@ -12,7 +13,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-ChartJS.register(LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend, TimeScale);
+ChartJS.register(LineController, LinearScale, PointElement, LineElement, Filler, Title, Tooltip, Legend, TimeScale);
 
 function formatCount(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";

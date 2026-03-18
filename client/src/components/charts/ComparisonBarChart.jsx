@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import {
   Chart as ChartJS,
+  BarController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -9,7 +10,7 @@ import {
   Legend,
 } from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(BarController, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 function formatCount(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";

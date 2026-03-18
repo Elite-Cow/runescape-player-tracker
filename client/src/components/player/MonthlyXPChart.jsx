@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
   Chart as ChartJS,
+  BarController,
   CategoryScale,
   LinearScale,
   BarElement,
@@ -10,7 +11,7 @@ import {
 import "chartjs-adapter-date-fns";
 import LoadingSpinner from "../common/LoadingSpinner";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, TimeScale);
+ChartJS.register(BarController, CategoryScale, LinearScale, BarElement, Tooltip, TimeScale);
 
 function formatXp(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + "M";

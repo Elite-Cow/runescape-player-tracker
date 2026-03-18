@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import {
   Chart as ChartJS,
+  LineController,
   LinearScale,
   PointElement,
   LineElement,
@@ -11,7 +12,7 @@ import {
 import "chartjs-adapter-date-fns";
 import LoadingSpinner from "../common/LoadingSpinner";
 
-ChartJS.register(LinearScale, PointElement, LineElement, Filler, Tooltip, TimeScale);
+ChartJS.register(LineController, LinearScale, PointElement, LineElement, Filler, Tooltip, TimeScale);
 
 function formatGold(n) {
   if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(2) + "B";

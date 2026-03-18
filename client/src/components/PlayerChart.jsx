@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import {
   Chart as ChartJS,
+  LineController,
   CategoryScale,
   LinearScale,
   PointElement,
@@ -14,6 +15,7 @@ import {
 import "chartjs-adapter-date-fns";
 
 ChartJS.register(
+  LineController,
   CategoryScale,
   LinearScale,
   PointElement,

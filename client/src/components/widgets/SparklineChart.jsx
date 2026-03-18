@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from "react";
 import {
   Chart as ChartJS,
+  LineController,
   LinearScale,
   PointElement,
   LineElement,
@@ -9,7 +10,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 
-ChartJS.register(LinearScale, PointElement, LineElement, Filler, TimeScale);
+ChartJS.register(LineController, LinearScale, PointElement, LineElement, Filler, TimeScale);
 
 export default function SparklineChart({ data, color }) {
   const canvasRef = useRef(null);
