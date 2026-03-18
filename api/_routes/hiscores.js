@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const https = require("https");
-const { parseHiscores, computeCombatLevel } = require("../lib/hiscores-parser");
+const { parseHiscores, computeCombatLevel } = require("../_lib/hiscores-parser");
 
 const router = Router();
 

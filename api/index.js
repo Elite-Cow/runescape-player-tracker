@@ -2,15 +2,15 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 
-const latestRouter = require("./routes/latest");
-const historyRouter = require("./routes/history");
-const availabilityRouter = require("./routes/availability");
-const rs3testRouter = require("./routes/rs3test");
-const newsRouter = require("./routes/news");
-const recordsRouter = require("./routes/records");
-const sparklineRouter = require("./routes/sparkline");
-const hiscoresRouter = require("./routes/hiscores");
-const recordsHistoryRouter = require("./routes/records-history");
+const latestRouter = require("./_routes/latest");
+const historyRouter = require("./_routes/history");
+const availabilityRouter = require("./_routes/availability");
+const rs3testRouter = require("./_routes/rs3test");
+const newsRouter = require("./_routes/news");
+const recordsRouter = require("./_routes/records");
+const sparklineRouter = require("./_routes/sparkline");
+const hiscoresRouter = require("./_routes/hiscores");
+const recordsHistoryRouter = require("./_routes/records-history");
 
 const app = express();
 
