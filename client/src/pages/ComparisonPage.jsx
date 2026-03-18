@@ -114,7 +114,7 @@ export default function ComparisonPage() {
           <button
             type="submit"
             disabled={!nameA.trim() || !nameB.trim() || loading}
-            className="px-5 py-2 rounded-md text-sm font-semibold text-bg-dark transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-glow-gold shrink-0"
+            className="px-5 py-2 rounded-md text-sm font-semibold text-bg-dark transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg shrink-0"
             style={{ background: "linear-gradient(135deg, #c8a84b, #e8c86b)" }}
           >
             Compare

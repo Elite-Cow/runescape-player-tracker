@@ -69,7 +69,7 @@ export default function PlayerSearchBar({ onSearch, loading }) {
             px-5 py-2 rounded-md text-sm font-semibold
             text-bg-dark transition-all duration-200
             disabled:opacity-50 disabled:cursor-not-allowed
-            hover:shadow-glow-gold hover:-translate-y-0.5
+            hover:shadow-lg hover:-translate-y-0.5
           "
           style={{
             background: "linear-gradient(135deg, #c8a84b, #e8c86b)",

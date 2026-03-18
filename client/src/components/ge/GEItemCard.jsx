@@ -38,7 +38,7 @@ export default function GEItemCard({ item, game, onSelect, selected }) {
         w-full text-left bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-4
         flex items-center gap-4 transition-all duration-300 group cursor-pointer
         shadow-md hover:shadow-lg hover:-translate-y-1
-        ${selected ? "ring-1 ring-gold/40 shadow-glow-gold" : ""}
+        ${selected ? "ring-1 ring-gold/40 shadow-lg" : ""}
       `}
     >
       <img
