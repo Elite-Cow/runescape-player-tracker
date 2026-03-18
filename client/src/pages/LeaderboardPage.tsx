@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Crown, Trophy } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -188,18 +189,28 @@ export default function LeaderboardPage() {
   const skillIconUrl = getSkillIconUrl(selectedSkill.name, game);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">
           Leaderboard
         </h1>
         <p className="text-sm text-[#888888] mt-1">Top 50 players by skill</p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Controls */}
-      <div className="flex flex-wrap items-center gap-4 mb-6 animate-fade-in-up stagger-1">
+      <motion.div
+        className="flex flex-wrap items-center gap-4 mb-6"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+      >
         <GameToggle game={game} onChange={handleGameChange} />
 
         <div className="w-56">
@@ -235,89 +246,118 @@ export default function LeaderboardPage() {
           )}
           <Badge variant="default">{selectedSkill.name}</Badge>
         </div>
-      </div>
+      </motion.div>
 
       {/* Error banner */}
-      {error && (
-        <Card className="mb-6 border-[#e05c5c]/30 animate-fade-in">
-          <CardContent className="py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#e05c5c]/10 flex items-center justify-center shrink-0">
-              <Trophy size={16} className="text-[#e05c5c]" />
-            </div>
-            <p className="text-sm text-[#e05c5c]">
-              Rankings temporarily unavailable. {error}
-            </p>
-          </CardContent>
-        </Card>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <Card className="mb-6 border-[#e05c5c]/30">
+              <CardContent className="py-4 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#e05c5c]/10 flex items-center justify-center shrink-0">
+                  <Trophy size={16} className="text-[#e05c5c]" />
+                </div>
+                <p className="text-sm text-[#e05c5c]">
+                  Rankings temporarily unavailable. {error}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
-      {loading && (
-        <Card className="animate-fade-in-up stagger-2">
-          <CardContent className="pt-6">
-            <LeaderboardSkeleton />
-          </CardContent>
-        </Card>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.15 }}
+          >
+            <Card>
+              <CardContent className="pt-6">
+                <LeaderboardSkeleton />
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Table */}
       {!loading && entries.length > 0 && (
-        <Card className="animate-fade-in-up stagger-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Crown size={18} className="text-[#c8a84b]" />
-              Top {entries.length} - {selectedSkill.name}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Rank</TableHead>
-                  <TableHead>Player</TableHead>
-                  <TableHead className="text-right">Level</TableHead>
-                  <TableHead className="text-right">XP</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entries.map((entry, i) => {
-                  const rank = entry.rank > 0 ? entry.rank : i + 1;
-                  const isTop3 = rank <= 3;
-                  return (
-                    <TableRow
-                      key={`${entry.name}-${rank}`}
-                      className={isTop3 ? "bg-[#c8a84b]/[0.04]" : ""}
-                    >
-                      <TableCell className="w-16">
-                        <MedalIcon rank={rank} />
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={`font-medium ${
-                            isTop3 ? "text-[#c8a84b]" : "text-[#e0e0e0]"
-                          }`}
-                        >
-                          {entry.name}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {entry.level.toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-right text-[#888888]">
-                        {formatXp(entry.xp)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.15 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown size={18} className="text-[#c8a84b]" />
+                Top {entries.length} - {selectedSkill.name}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">Rank</TableHead>
+                    <TableHead>Player</TableHead>
+                    <TableHead className="text-right">Level</TableHead>
+                    <TableHead className="text-right">XP</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {entries.map((entry, i) => {
+                    const rank = entry.rank > 0 ? entry.rank : i + 1;
+                    const isTop3 = rank <= 3;
+                    return (
+                      <TableRow
+                        key={`${entry.name}-${rank}`}
+                        className={isTop3 ? "bg-[#c8a84b]/[0.04]" : ""}
+                      >
+                        <TableCell className="w-16">
+                          <MedalIcon rank={rank} />
+                        </TableCell>
+                        <TableCell>
+                          <span
+                            className={`font-medium ${
+                              isTop3 ? "text-[#c8a84b]" : "text-[#e0e0e0]"
+                            }`}
+                          >
+                            {entry.name}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-semibold">
+                          {entry.level.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right text-[#888888]">
+                          {formatXp(entry.xp)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
 
       {/* Empty state */}
       {!loading && entries.length === 0 && !error && (
-        <div className="text-center py-20 animate-fade-in">
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
             <Crown size={32} className="text-[#c8a84b]/40" />
           </div>
@@ -325,7 +365,7 @@ export default function LeaderboardPage() {
           <p className="text-sm text-[#666666] mt-1">
             The ranking API may not be available for this skill
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

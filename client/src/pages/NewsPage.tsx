@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -14,6 +15,20 @@ import type { NewsItem } from "../types/api";
 type FilterTab = "all" | "official" | "youtube" | "reddit";
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000; // 15 minutes
+
+// ---------------------------------------------------------------------------
+// Animation variants
+// ---------------------------------------------------------------------------
+
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 30 } },
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -54,13 +69,12 @@ function typeLabel(type: NewsItem["type"]): string {
 
 interface NewsCardProps {
   article: NewsItem;
-  index: number;
 }
 
-function NewsCard({ article, index }: NewsCardProps) {
+function NewsCard({ article }: NewsCardProps) {
   return (
     <Card
-      className={`overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 group animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
+      className="overflow-hidden flex flex-col hover:shadow-lg hover:-translate-y-2 transition-all duration-300 group"
     >
       {article.image && (
         <div className="overflow-hidden">
@@ -203,18 +217,28 @@ export default function NewsPage() {
       : articles.filter((a) => a.type === activeTab);
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Page header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">News</h1>
         <p className="text-sm text-[#666666] mt-1">
           Latest updates from RS3 and Old School RuneScape
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Filter tabs */}
-      <div className="mb-6 animate-fade-in-up stagger-1">
+      <motion.div
+        className="mb-6"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.06 }}
+      >
         <Tabs
           value={activeTab}
           onValueChange={(val) => setActiveTab(val as FilterTab)}
@@ -233,28 +257,49 @@ export default function NewsPage() {
             </TabsContent>
           ))}
         </Tabs>
-      </div>
+      </motion.div>
 
       {/* Error banner */}
-      {error && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Content */}
       {loading ? (
         <NewsSkeletonGrid />
       ) : filtered.length === 0 ? (
-        <div className="text-center text-[#666666] py-20 animate-fade-in">
+        <motion.div
+          className="text-center text-[#666666] py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
           No articles found.
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filtered.map((article, i) => (
-            <NewsCard key={article.link} article={article} index={i} />
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+          key={activeTab}
+        >
+          {filtered.map((article) => (
+            <motion.div key={article.link} variants={staggerItem}>
+              <NewsCard article={article} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

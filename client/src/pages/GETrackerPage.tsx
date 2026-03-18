@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Coins, Search, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -652,9 +653,14 @@ export default function GETrackerPage() {
   };
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">
           GE Price Tracker
         </h1>
@@ -662,108 +668,142 @@ export default function GETrackerPage() {
           Search Grand Exchange items and view price history
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* RS3 unavailable banner */}
-      {rs3Unavailable && (
-        <div className="mb-4 flex items-center gap-2 rounded-lg border border-[#ffab00]/30 bg-[#ffab00]/10 p-3 animate-fade-in">
-          <AlertTriangle size={16} className="text-[#ffab00] shrink-0" />
-          <p className="text-sm text-[#ffab00]">
-            RS3 GE data temporarily unavailable. Try OSRS or check back later.
-          </p>
-        </div>
-      )}
+      <AnimatePresence>
+        {rs3Unavailable && (
+          <motion.div
+            className="mb-4 flex items-center gap-2 rounded-lg border border-[#ffab00]/30 bg-[#ffab00]/10 p-3"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <AlertTriangle size={16} className="text-[#ffab00] shrink-0" />
+            <p className="text-sm text-[#ffab00]">
+              RS3 GE data temporarily unavailable. Try OSRS or check back later.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search form */}
-      <Card className="mb-6 animate-fade-in-up stagger-1">
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <GameToggle game={game} onChange={(g) => { setGame(g); setItems([]); setSelectedItem(null); setError(null); setRs3Unavailable(false); }} />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+      >
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <GameToggle game={game} onChange={(g) => { setGame(g); setItems([]); setSelectedItem(null); setError(null); setRs3Unavailable(false); }} />
 
-            <div className="relative" ref={suggestionsRef}>
-              <div className="flex gap-2">
-                <div className="relative flex-1">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
-                  />
-                  <Input
-                    type="text"
-                    value={query}
-                    onChange={(e) => {
-                      setQuery(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    onFocus={() => setShowSuggestions(true)}
-                    placeholder={
-                      game === "osrs"
-                        ? 'Search OSRS items (e.g. "Twisted bow")'
-                        : 'Search RS3 items (e.g. "Dragon bones")'
-                    }
-                    className="pl-9"
-                  />
+              <div className="relative" ref={suggestionsRef}>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <Search
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
+                    />
+                    <Input
+                      type="text"
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      placeholder={
+                        game === "osrs"
+                          ? 'Search OSRS items (e.g. "Twisted bow")'
+                          : 'Search RS3 items (e.g. "Dragon bones")'
+                      }
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button type="submit" disabled={!query.trim() || loading}>
+                    {loading ? "Searching..." : "Search"}
+                  </Button>
                 </div>
-                <Button type="submit" disabled={!query.trim() || loading}>
-                  {loading ? "Searching..." : "Search"}
-                </Button>
+
+                {/* Autocomplete dropdown */}
+                {showSuggestions && autocompleteSuggestions.length > 0 && query.trim().length > 0 && (
+                  <div className="absolute z-50 top-full mt-1 w-full max-h-64 overflow-y-auto rounded-md border border-[#1a2048] bg-[#0f1535] shadow-xl">
+                    {autocompleteSuggestions.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleSuggestionClick(item)}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[#c8a84b]/10 transition-colors"
+                      >
+                        <img
+                          src={
+                            game === "osrs"
+                              ? `/api/ge/image/${item.id}?game=osrs`
+                              : item.icon
+                          }
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="rounded bg-black/20 object-contain"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                          }}
+                        />
+                        <span className="text-[#e0e0e0] truncate">{item.name}</span>
+                        {item.members && (
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 ml-auto shrink-0">
+                            P2P
+                          </Badge>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
-
-              {/* Autocomplete dropdown */}
-              {showSuggestions && autocompleteSuggestions.length > 0 && query.trim().length > 0 && (
-                <div className="absolute z-50 top-full mt-1 w-full max-h-64 overflow-y-auto rounded-md border border-[#1a2048] bg-[#0f1535] shadow-xl">
-                  {autocompleteSuggestions.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleSuggestionClick(item)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[#c8a84b]/10 transition-colors"
-                    >
-                      <img
-                        src={
-                          game === "osrs"
-                            ? `/api/ge/image/${item.id}?game=osrs`
-                            : item.icon
-                        }
-                        alt=""
-                        width={20}
-                        height={20}
-                        className="rounded bg-black/20 object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
-                      <span className="text-[#e0e0e0] truncate">{item.name}</span>
-                      {item.members && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 ml-auto shrink-0">
-                          P2P
-                        </Badge>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Error */}
-      {error && !rs3Unavailable && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && !rs3Unavailable && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
-      {loading && (
-        <div className="animate-fade-in-up">
-          <GESkeleton />
-        </div>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <GESkeleton />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Results */}
       {!loading && items.length > 0 && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up stagger-2">
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.15 }}
+        >
           {/* Item list */}
           <div className="lg:col-span-1 flex flex-col gap-3 max-h-[600px] overflow-y-auto pr-1">
             {items.map((item) => (
@@ -788,12 +828,17 @@ export default function GETrackerPage() {
               </Card>
             )}
           </div>
-        </div>
+        </motion.div>
       )}
 
       {/* Empty state */}
       {!loading && items.length === 0 && !error && (
-        <div className="text-center py-20 animate-fade-in">
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
             <Coins
               size={32}
@@ -807,7 +852,7 @@ export default function GETrackerPage() {
           <p className="text-sm text-[#666666]">
             Try "Abyssal whip", "Dragon bones", or "Twisted bow"
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

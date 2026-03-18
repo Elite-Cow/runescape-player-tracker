@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, Swords, ScrollText, Clock, TrendingUp } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -579,9 +580,14 @@ export default function PlayerLookupPage() {
   const isRs3 = game === "rs3";
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">
           Player Lookup
         </h1>
@@ -589,131 +595,167 @@ export default function PlayerLookupPage() {
           Search any player's hiscores, quests, and activity
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Search form */}
-      <Card className="mb-6 animate-fade-in-up stagger-1">
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="space-y-3">
-            <GameToggle game={game} onChange={setGame} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.05 }}
+      >
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <form onSubmit={handleSearch} className="space-y-3">
+              <GameToggle game={game} onChange={setGame} />
 
-            <div className="flex gap-2">
-              <div className="relative flex-1">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
-                />
-                <Input
-                  type="text"
-                  value={playerName}
-                  onChange={(e) => setPlayerName(e.target.value)}
-                  placeholder="Enter player name..."
-                  maxLength={12}
-                  className="pl-9"
-                />
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
+                  />
+                  <Input
+                    type="text"
+                    value={playerName}
+                    onChange={(e) => setPlayerName(e.target.value)}
+                    placeholder="Enter player name..."
+                    maxLength={12}
+                    className="pl-9"
+                  />
+                </div>
+                <Button type="submit" disabled={!playerName.trim() || loading}>
+                  {loading ? "Searching..." : "Search"}
+                </Button>
               </div>
-              <Button type="submit" disabled={!playerName.trim() || loading}>
-                {loading ? "Searching..." : "Search"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Error */}
-      {error && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
-      {loading && (
-        <div className="animate-fade-in-up">
-          <LookupSkeleton />
-        </div>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <LookupSkeleton />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Results */}
-      {hiscores && !loading && (
-        <div className="animate-fade-in-up">
-          <Tabs defaultValue="overview">
-            <TabsList className="mb-4 flex-wrap">
-              <TabsTrigger value="overview">
-                <User size={14} className="mr-1.5 inline-block" />
-                Overview
-              </TabsTrigger>
-              <TabsTrigger value="skills">
-                <Swords size={14} className="mr-1.5 inline-block" />
-                Skills
-              </TabsTrigger>
-              {isRs3 && (
-                <TabsTrigger value="quests">
-                  <ScrollText size={14} className="mr-1.5 inline-block" />
-                  Quests
+      <AnimatePresence>
+        {hiscores && !loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <Tabs defaultValue="overview">
+              <TabsList className="mb-4 flex-wrap">
+                <TabsTrigger value="overview">
+                  <User size={14} className="mr-1.5 inline-block" />
+                  Overview
                 </TabsTrigger>
-              )}
-              {isRs3 && (
-                <TabsTrigger value="activity">
-                  <Clock size={14} className="mr-1.5 inline-block" />
-                  Activity
+                <TabsTrigger value="skills">
+                  <Swords size={14} className="mr-1.5 inline-block" />
+                  Skills
                 </TabsTrigger>
-              )}
+                {isRs3 && (
+                  <TabsTrigger value="quests">
+                    <ScrollText size={14} className="mr-1.5 inline-block" />
+                    Quests
+                  </TabsTrigger>
+                )}
+                {isRs3 && (
+                  <TabsTrigger value="activity">
+                    <Clock size={14} className="mr-1.5 inline-block" />
+                    Activity
+                  </TabsTrigger>
+                )}
+                {isRs3 && (
+                  <TabsTrigger value="xp">
+                    <TrendingUp size={14} className="mr-1.5 inline-block" />
+                    XP Gains
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              <TabsContent value="overview">
+                <OverviewTab hiscores={hiscores} profile={profile} game={game} />
+              </TabsContent>
+
+              <TabsContent value="skills">
+                <SkillsTab skills={hiscores.skills} game={game} />
+              </TabsContent>
+
               {isRs3 && (
-                <TabsTrigger value="xp">
-                  <TrendingUp size={14} className="mr-1.5 inline-block" />
-                  XP Gains
-                </TabsTrigger>
+                <TabsContent value="quests">
+                  <QuestsTab quests={quests} />
+                </TabsContent>
               )}
-            </TabsList>
 
-            <TabsContent value="overview">
-              <OverviewTab hiscores={hiscores} profile={profile} game={game} />
-            </TabsContent>
+              {isRs3 && (
+                <TabsContent value="activity">
+                  <ActivityTab activities={profile?.activities ?? []} />
+                </TabsContent>
+              )}
 
-            <TabsContent value="skills">
-              <SkillsTab skills={hiscores.skills} game={game} />
-            </TabsContent>
-
-            {isRs3 && (
-              <TabsContent value="quests">
-                <QuestsTab quests={quests} />
-              </TabsContent>
-            )}
-
-            {isRs3 && (
-              <TabsContent value="activity">
-                <ActivityTab activities={profile?.activities ?? []} />
-              </TabsContent>
-            )}
-
-            {isRs3 && (
-              <TabsContent value="xp">
-                <XPGainsTab playerName={hiscores.player} />
-              </TabsContent>
-            )}
-          </Tabs>
-        </div>
-      )}
+              {isRs3 && (
+                <TabsContent value="xp">
+                  <XPGainsTab playerName={hiscores.player} />
+                </TabsContent>
+              )}
+            </Tabs>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Empty state */}
-      {!hiscores && !loading && !error && (
-        <div className="text-center py-20 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
-            <Search
-              size={32}
-              className="text-[#c8a84b]/40"
-              style={{ animation: "pulseGlow 2s ease-in-out infinite" }}
-            />
-          </div>
-          <p className="text-lg text-[#888888] mb-2">
-            Search for a player to get started
-          </p>
-          <p className="text-sm text-[#666666]">
-            Try searching for a well-known player like "Zezima"
-          </p>
-        </div>
-      )}
+      <AnimatePresence>
+        {!hiscores && !loading && !error && (
+          <motion.div
+            className="text-center py-20"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
+              <Search
+                size={32}
+                className="text-[#c8a84b]/40"
+                style={{ animation: "pulseGlow 2s ease-in-out infinite" }}
+              />
+            </div>
+            <p className="text-lg text-[#888888] mb-2">
+              Search for a player to get started
+            </p>
+            <p className="text-sm text-[#666666]">
+              Try searching for a well-known player like "Zezima"
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

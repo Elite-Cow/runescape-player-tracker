@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { GitCompareArrows, Search } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -292,9 +293,14 @@ export default function ComparisonPage() {
   const mapB = React.useMemo(() => (dataB ? skillMap(dataB.skills) : new Map()), [dataB]);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">
           Player Comparison
         </h1>
@@ -302,76 +308,102 @@ export default function ComparisonPage() {
           Compare two players side-by-side
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Search form */}
-      <Card className="mb-6 animate-fade-in-up stagger-1">
-        <CardContent className="pt-6">
-          <form onSubmit={handleCompare} className="space-y-3">
-            <GameToggle game={game} onChange={setGame} />
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+      >
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <form onSubmit={handleCompare} className="space-y-3">
+              <GameToggle game={game} onChange={setGame} />
 
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
-              <div className="relative flex-1 w-full">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
-                />
-                <Input
-                  type="text"
-                  value={nameA}
-                  onChange={(e) => setNameA(e.target.value)}
-                  placeholder="Player 1..."
-                  maxLength={12}
-                  className="pl-9"
-                />
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <div className="relative flex-1 w-full">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
+                  />
+                  <Input
+                    type="text"
+                    value={nameA}
+                    onChange={(e) => setNameA(e.target.value)}
+                    placeholder="Player 1..."
+                    maxLength={12}
+                    className="pl-9"
+                  />
+                </div>
+
+                <span className="text-[#666666] text-xs font-bold">VS</span>
+
+                <div className="relative flex-1 w-full">
+                  <Search
+                    size={16}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
+                  />
+                  <Input
+                    type="text"
+                    value={nameB}
+                    onChange={(e) => setNameB(e.target.value)}
+                    placeholder="Player 2..."
+                    maxLength={12}
+                    className="pl-9"
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={!nameA.trim() || !nameB.trim() || loading}
+                  className="shrink-0"
+                >
+                  Compare
+                </Button>
               </div>
-
-              <span className="text-[#666666] text-xs font-bold">VS</span>
-
-              <div className="relative flex-1 w-full">
-                <Search
-                  size={16}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666]"
-                />
-                <Input
-                  type="text"
-                  value={nameB}
-                  onChange={(e) => setNameB(e.target.value)}
-                  placeholder="Player 2..."
-                  maxLength={12}
-                  className="pl-9"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={!nameA.trim() || !nameB.trim() || loading}
-                className="shrink-0"
-              >
-                Compare
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+            </form>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Error */}
-      {error && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
-      {loading && (
-        <div className="animate-fade-in-up">
-          <ComparisonSkeleton />
-        </div>
-      )}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            <ComparisonSkeleton />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Results */}
       {dataA && dataB && !loading && (
-        <div className="space-y-6 animate-fade-in-up">
+        <motion.div
+          className="space-y-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+        >
           {/* Summary cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <SummaryCard data={dataA} accent="osrs" />
@@ -479,12 +511,17 @@ export default function ComparisonPage() {
               </Table>
             </CardContent>
           </Card>
-        </div>
+        </motion.div>
       )}
 
       {/* Empty state */}
       {!dataA && !loading && !error && (
-        <div className="text-center py-20 animate-fade-in">
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
             <GitCompareArrows
               size={32}
@@ -498,7 +535,7 @@ export default function ComparisonPage() {
           <p className="text-sm text-[#666666]">
             See who has the edge in each skill
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

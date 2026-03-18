@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
@@ -26,6 +27,36 @@ interface ComparisonBarData {
   osrsAvg: number;
   rs3Avg: number;
 }
+
+// ---------------------------------------------------------------------------
+// Framer Motion variants
+// ---------------------------------------------------------------------------
+
+const fadeSlideUp = {
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+};
+
+const staggerContainer = {
+  initial: {},
+  animate: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const staggerChild = {
+  initial: { opacity: 0, y: 16, scale: 0.97 },
+  animate: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { type: "spring" as const, stiffness: 260, damping: 20 },
+  },
+};
+
+const springTransition = { type: "spring" as const, stiffness: 300, damping: 24 };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -222,15 +253,21 @@ export default function TrackerPage() {
   const isLoading = loadingChart || (selectedRange !== null && historyData === null && !error);
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Page header */}
-      <div className="mb-8">
+      <motion.div
+        className="mb-8"
+        variants={fadeSlideUp}
+        initial="initial"
+        animate="animate"
+        transition={{ ...springTransition, delay: 0 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">Player Tracker</h1>
         <p className="text-sm text-[#888888] mt-1">
           Track and analyze RuneScape player counts over time
         </p>
         <div className="mt-3 h-px bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {error && (
         <div className="text-center text-[#e05c5c] py-4 mb-4">{error}</div>
@@ -238,121 +275,143 @@ export default function TrackerPage() {
 
       {/* Range buttons */}
       {availability && selectedRange && (
-        <RangeButtons
-          availability={availability}
-          selected={selectedRange}
-          onSelect={setSelectedRange}
-        />
+        <motion.div
+          variants={fadeSlideUp}
+          initial="initial"
+          animate="animate"
+          transition={{ ...springTransition, delay: 0.1 }}
+        >
+          <RangeButtons
+            availability={availability}
+            selected={selectedRange}
+            onSelect={setSelectedRange}
+          />
+        </motion.div>
       )}
 
       {/* Peak stat cards */}
-      <div className="flex justify-center gap-4 mb-6 flex-wrap">
+      <motion.div
+        className="flex justify-center gap-4 mb-6 flex-wrap"
+        variants={staggerContainer}
+        initial="initial"
+        animate="animate"
+      >
         {peaks
           ? PEAK_CONFIGS.map((cfg) => (
-              <Card
-                key={cfg.key}
-                className="min-w-[140px]"
-                style={{ borderLeftWidth: 2, borderLeftColor: cfg.borderColor }}
-              >
-                <CardContent className="px-5 py-3 text-center">
-                  <div className="flex items-center justify-center gap-1.5 mb-1">
-                    <Trophy size={12} style={{ color: cfg.color }} />
-                    <span className="text-xs text-[#888888] uppercase tracking-wide">
-                      {cfg.label}
-                    </span>
-                  </div>
-                  <div className="text-xl font-bold" style={{ color: cfg.color }}>
-                    {formatCount(peaks[cfg.key])}
-                  </div>
-                </CardContent>
-              </Card>
+              <motion.div key={cfg.key} variants={staggerChild}>
+                <Card
+                  className="min-w-[140px]"
+                  style={{ borderLeftWidth: 2, borderLeftColor: cfg.borderColor }}
+                >
+                  <CardContent className="px-5 py-3 text-center">
+                    <div className="flex items-center justify-center gap-1.5 mb-1">
+                      <Trophy size={12} style={{ color: cfg.color }} />
+                      <span className="text-xs text-[#888888] uppercase tracking-wide">
+                        {cfg.label}
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold" style={{ color: cfg.color }}>
+                      {formatCount(peaks[cfg.key])}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))
           : !error && (
               Array.from({ length: 3 }).map((_, i) => (
-                <Card key={i} className="min-w-[140px]">
-                  <CardContent className="px-5 py-3 text-center space-y-2">
-                    <Skeleton className="h-3 w-16 mx-auto" />
-                    <Skeleton className="h-6 w-20 mx-auto" />
-                  </CardContent>
-                </Card>
+                <motion.div key={i} variants={staggerChild}>
+                  <Card className="min-w-[140px]">
+                    <CardContent className="px-5 py-3 text-center space-y-2">
+                      <Skeleton className="h-3 w-16 mx-auto" />
+                      <Skeleton className="h-6 w-20 mx-auto" />
+                    </CardContent>
+                  </Card>
+                </motion.div>
               ))
             )}
-      </div>
+      </motion.div>
 
       {/* Tabs: Chart / Breakdown / Comparison */}
-      <Tabs defaultValue="chart" className="w-full">
-        <div className="flex justify-center mb-4">
-          <TabsList>
-            <TabsTrigger value="chart">Chart</TabsTrigger>
-            <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
-            <TabsTrigger value="comparison">Comparison</TabsTrigger>
-          </TabsList>
-        </div>
+      <motion.div
+        variants={fadeSlideUp}
+        initial="initial"
+        animate="animate"
+        transition={{ ...springTransition, delay: 0.3 }}
+      >
+        <Tabs defaultValue="chart" className="w-full">
+          <div className="flex justify-center mb-4">
+            <TabsList>
+              <TabsTrigger value="chart">Chart</TabsTrigger>
+              <TabsTrigger value="breakdown">Breakdown</TabsTrigger>
+              <TabsTrigger value="comparison">Comparison</TabsTrigger>
+            </TabsList>
+          </div>
 
-        {/* ---- Tab: Chart ---- */}
-        <TabsContent value="chart">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Player Count History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="min-h-[420px]">
-                {isLoading ? (
-                  <LoadingSpinner className="py-20" />
-                ) : historyData && historyData.length > 0 && selectedRange ? (
-                  <PlayerChart data={historyData} range={selectedRange} />
-                ) : (
-                  <p className="text-center text-[#666666] py-16">No data available.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          {/* ---- Tab: Chart ---- */}
+          <TabsContent value="chart">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Player Count History</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="min-h-[420px]">
+                  {isLoading ? (
+                    <LoadingSpinner className="py-20" />
+                  ) : historyData && historyData.length > 0 && selectedRange ? (
+                    <PlayerChart data={historyData} range={selectedRange} />
+                  ) : (
+                    <p className="text-center text-[#666666] py-16">No data available.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* ---- Tab: Breakdown (area chart) ---- */}
-        <TabsContent value="breakdown">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">OSRS vs RS3 Breakdown</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="min-h-[360px]">
-                {isLoading ? (
-                  <LoadingSpinner className="py-20" />
-                ) : historyData && historyData.length > 0 && selectedRange ? (
-                  <AreaChart data={historyData} range={selectedRange} />
-                ) : (
-                  <p className="text-center text-[#666666] py-16">No data available.</p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          {/* ---- Tab: Breakdown (area chart) ---- */}
+          <TabsContent value="breakdown">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">OSRS vs RS3 Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="min-h-[360px]">
+                  {isLoading ? (
+                    <LoadingSpinner className="py-20" />
+                  ) : historyData && historyData.length > 0 && selectedRange ? (
+                    <AreaChart data={historyData} range={selectedRange} />
+                  ) : (
+                    <p className="text-center text-[#666666] py-16">No data available.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* ---- Tab: Comparison (bar chart) ---- */}
-        <TabsContent value="comparison">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">
-                OSRS vs RS3 — Daily Average Comparison
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="min-h-[320px]">
-                {isLoading ? (
-                  <LoadingSpinner className="py-20" />
-                ) : comparisonData.length > 0 ? (
-                  <ComparisonBarChart data={comparisonData} />
-                ) : (
-                  <p className="text-center text-[#666666] py-16">
-                    Not enough data for daily comparison.
-                  </p>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+          {/* ---- Tab: Comparison (bar chart) ---- */}
+          <TabsContent value="comparison">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">
+                  OSRS vs RS3 — Daily Average Comparison
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="min-h-[320px]">
+                  {isLoading ? (
+                    <LoadingSpinner className="py-20" />
+                  ) : comparisonData.length > 0 ? (
+                    <ComparisonBarChart data={comparisonData} />
+                  ) : (
+                    <p className="text-center text-[#666666] py-16">
+                      Not enough data for daily comparison.
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </motion.div>
     </div>
   );
 }

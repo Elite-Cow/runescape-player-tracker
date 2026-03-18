@@ -38,26 +38,26 @@ const RS_DARK_THEME = {
     inactiveColor: "#333333",
   },
   tooltip: {
-    backgroundColor: "rgba(8, 13, 31, 0.95)",
-    borderColor: "rgba(200, 168, 75, 0.25)",
+    backgroundColor: "rgba(15, 21, 53, 0.85)",
+    borderColor: "rgba(255, 255, 255, 0.08)",
     borderWidth: 1,
     textStyle: {
       color: "#e0e0e0",
       fontSize: 13,
     },
-    extraCssText: "backdrop-filter: blur(8px); border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.4);",
+    extraCssText: "backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);",
   },
   categoryAxis: {
-    axisLine: { lineStyle: { color: "#1a2048" } },
-    axisTick: { lineStyle: { color: "#1a2048" } },
+    axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+    axisTick: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
     axisLabel: { color: "#666666" },
-    splitLine: { lineStyle: { color: "rgba(26, 32, 72, 0.5)", type: "dashed" as const } },
+    splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)", type: "dashed" as const } },
   },
   valueAxis: {
-    axisLine: { lineStyle: { color: "#1a2048" } },
-    axisTick: { lineStyle: { color: "#1a2048" } },
+    axisLine: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
+    axisTick: { lineStyle: { color: "rgba(255,255,255,0.06)" } },
     axisLabel: { color: "#666666" },
-    splitLine: { lineStyle: { color: "rgba(26, 32, 72, 0.5)", type: "dashed" as const } },
+    splitLine: { lineStyle: { color: "rgba(255,255,255,0.04)", type: "dashed" as const } },
   },
   line: {
     smooth: false,
@@ -70,12 +70,12 @@ const RS_DARK_THEME = {
   dataZoom: [
     {
       type: "inside" as const,
-      borderColor: "#1a2048",
+      borderColor: "rgba(255,255,255,0.06)",
     },
     {
       type: "slider" as const,
-      backgroundColor: "rgba(8, 13, 31, 0.8)",
-      borderColor: "#1a2048",
+      backgroundColor: "rgba(15, 21, 53, 0.6)",
+      borderColor: "rgba(255,255,255,0.06)",
       fillerColor: "rgba(200, 168, 75, 0.08)",
       handleStyle: { color: "#c8a84b", borderColor: "#c8a84b" },
       textStyle: { color: "#888888" },

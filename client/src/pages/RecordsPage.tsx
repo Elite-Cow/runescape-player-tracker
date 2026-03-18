@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, ArrowDown, ChevronUp, ChevronDown } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -246,25 +247,43 @@ export default function RecordsPage() {
   ];
 
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Page header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">Records</h1>
         <p className="text-sm text-[#666666] mt-1">
           Historical player count peaks, lows, and daily records
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Error banner */}
-      {error && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {loading ? (
-        <div className="flex flex-col gap-6">
+        <motion.div
+          className="flex flex-col gap-6"
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+        >
           {/* Skeleton for all-time cards */}
           <div>
             <Skeleton className="h-5 w-40 mb-3" />
@@ -276,30 +295,45 @@ export default function RecordsPage() {
           </div>
           {/* Skeleton for table */}
           <Skeleton className="h-64 rounded-xl" />
-        </div>
+        </motion.div>
       ) : (
         <div className="flex flex-col gap-6">
           {/* All-Time Records */}
           {allTime && (
-            <div>
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.1 }}
+            >
               <h3 className="font-cinzel text-base font-semibold text-[#e0e0e0] mb-3">
                 All-Time Records
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
                 {recordCards.map((card, i) => (
-                  <div
+                  <motion.div
                     key={`${card.label}-${card.isPeak}`}
-                    className={`animate-fade-in-up stagger-${Math.min(i + 1, 6)}`}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 300,
+                      damping: 30,
+                      delay: 0.15 + i * 0.05,
+                    }}
                   >
                     <RecordCard {...card} />
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
 
           {/* Daily Records */}
-          <div className="animate-fade-in-up stagger-4">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.3 }}
+          >
             <div className="flex items-center justify-between mb-3 flex-wrap gap-3">
               <h3 className="font-cinzel text-base font-semibold text-[#e0e0e0]">
                 Daily Records
@@ -409,7 +443,7 @@ export default function RecordsPage() {
                 )}
               </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </div>
       )}
     </div>

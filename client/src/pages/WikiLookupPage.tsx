@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Search, BookOpen, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
@@ -42,6 +43,20 @@ type OpenSearchResponse = [string, string[], string[], string[]];
 
 const DEBOUNCE_MS = 500;
 const MIN_SEARCH_CHARS = 3;
+
+// ---------------------------------------------------------------------------
+// Animation variants
+// ---------------------------------------------------------------------------
+
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.06 } },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 12 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 30 } },
+};
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -338,9 +353,14 @@ export default function WikiLookupPage() {
   }
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Page header */}
-      <div className="mb-8 animate-fade-in-up">
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
         <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">
           Wiki Lookup
         </h1>
@@ -348,110 +368,136 @@ export default function WikiLookupPage() {
           Search the RuneScape and OSRS wikis
         </p>
         <div className="mt-3 h-[1px] bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {/* Search area */}
-      <Card className="mb-6 animate-fade-in-up stagger-1">
-        <CardContent className="p-4">
-          <div ref={wrapperRef} className="relative">
-            <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
-              {/* Game toggle */}
-              <div className="flex rounded-full overflow-hidden border border-[#1a2048] shrink-0">
-                {(["rs3", "osrs"] as const).map((g) => (
-                  <button
-                    key={g}
-                    type="button"
-                    onClick={() => handleGameToggle(g)}
-                    className={`
-                      px-5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer
-                      ${
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.06 }}
+      >
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div ref={wrapperRef} className="relative">
+              <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3">
+                {/* Game toggle */}
+                <div className="flex rounded-full overflow-hidden border border-[#1a2048] shrink-0">
+                  {(["rs3", "osrs"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => handleGameToggle(g)}
+                      className={`
+                        px-5 py-2 text-sm font-semibold transition-all duration-200 cursor-pointer
+                        ${
+                          game === g
+                            ? g === "osrs"
+                              ? "text-white"
+                              : "text-[#080d1f]"
+                            : "bg-transparent text-[#666666] hover:text-[#e0e0e0]"
+                        }
+                      `}
+                      style={
                         game === g
-                          ? g === "osrs"
-                            ? "text-white"
-                            : "text-[#080d1f]"
-                          : "bg-transparent text-[#666666] hover:text-[#e0e0e0]"
+                          ? {
+                              background:
+                                g === "osrs"
+                                  ? "linear-gradient(135deg, #5ba3f5, #7bb8ff)"
+                                  : "linear-gradient(135deg, #c8a84b, #e8c86b)",
+                            }
+                          : undefined
                       }
-                    `}
-                    style={
-                      game === g
-                        ? {
-                            background:
-                              g === "osrs"
-                                ? "linear-gradient(135deg, #5ba3f5, #7bb8ff)"
-                                : "linear-gradient(135deg, #c8a84b, #e8c86b)",
-                          }
-                        : undefined
-                    }
-                  >
-                    {g.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-
-              {/* Search input + button */}
-              <div className="flex flex-1 gap-2">
-                <div className="relative flex-1">
-                  <Search
-                    size={16}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666] pointer-events-none"
-                  />
-                  <Input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    onFocus={() => {
-                      if (suggestions.length > 0) setShowSuggestions(true);
-                    }}
-                    placeholder="Search the RuneScape Wiki..."
-                    className="pl-9"
-                  />
+                    >
+                      {g.toUpperCase()}
+                    </button>
+                  ))}
                 </div>
-                <Button type="submit" disabled={!query.trim()}>
-                  Search
-                </Button>
-              </div>
-            </form>
 
-            {/* Autocomplete dropdown */}
-            {showSuggestions && suggestions.length > 0 && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-[#0f1535] border border-[#1a2048] rounded-lg shadow-lg overflow-hidden">
-                {suggestions.map((title) => (
-                  <button
-                    key={title}
-                    onClick={() => selectSuggestion(title)}
-                    className="w-full text-left px-4 py-2.5 text-sm text-[#e0e0e0] hover:bg-white/[0.06] transition-colors cursor-pointer"
-                  >
-                    {title}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                {/* Search input + button */}
+                <div className="flex flex-1 gap-2">
+                  <div className="relative flex-1">
+                    <Search
+                      size={16}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[#666666] pointer-events-none"
+                    />
+                    <Input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onFocus={() => {
+                        if (suggestions.length > 0) setShowSuggestions(true);
+                      }}
+                      placeholder="Search the RuneScape Wiki..."
+                      className="pl-9"
+                    />
+                  </div>
+                  <Button type="submit" disabled={!query.trim()}>
+                    Search
+                  </Button>
+                </div>
+              </form>
+
+              {/* Autocomplete dropdown */}
+              {showSuggestions && suggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 z-20 bg-[#0f1535] border border-[#1a2048] rounded-lg shadow-lg overflow-hidden">
+                  {suggestions.map((title) => (
+                    <button
+                      key={title}
+                      onClick={() => selectSuggestion(title)}
+                      className="w-full text-left px-4 py-2.5 text-sm text-[#e0e0e0] hover:bg-white/[0.06] transition-colors cursor-pointer"
+                    >
+                      {title}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Error banner */}
-      {error && (
-        <div className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6 animate-fade-in">
-          {error}
-        </div>
-      )}
+      <AnimatePresence>
+        {error && (
+          <motion.div
+            className="bg-[#e05c5c]/10 border border-[#e05c5c]/30 rounded-lg p-4 text-[#e05c5c] text-sm mb-6"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+          >
+            {error}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Loading */}
       {loading && <WikiSkeletonGrid />}
 
       {/* Results grid */}
       {!loading && results.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-fade-in-up stagger-2">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="show"
+        >
           {results.map((result) => (
-            <WikiResultCard key={result.title} result={result} game={game} />
+            <motion.div key={result.title} variants={staggerItem}>
+              <WikiResultCard result={result} game={game} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Empty state */}
       {!loading && results.length === 0 && !error && (
-        <div className="text-center py-20 animate-fade-in">
+        <motion.div
+          className="text-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#c8a84b]/5 mb-4">
             <BookOpen
               size={32}
@@ -463,7 +509,7 @@ export default function WikiLookupPage() {
           <p className="text-sm text-[#555555]">
             Try &quot;Dragon&quot;, &quot;Abyssal whip&quot;, or &quot;Barrows&quot;
           </p>
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -1,5 +1,6 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { Users, TrendingUp, TrendingDown, Clock, Wifi } from "lucide-react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { motion, useSpring, useTransform } from "framer-motion";
+import { Users, TrendingUp, TrendingDown, Clock, Wifi, Trophy } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Badge } from "../components/ui/badge";
 import { Skeleton } from "../components/ui/skeleton";
@@ -14,7 +15,6 @@ import type {
   AvailabilityMap,
   TimeRange,
   SparklinePoint,
-  RecordsResponse,
 } from "../types/api";
 
 // ---------------------------------------------------------------------------
@@ -26,14 +26,12 @@ interface AccountTotalResponse {
   fetchedAt: string;
 }
 
-/** /api/records returns peaks/lows as plain numbers, delta object */
 interface RecordsAPIResponse {
   peaks: { total: number; osrs: number; rs3: number };
   lows: { total: number; osrs: number; rs3: number };
   delta: { total: number; osrs: number; rs3: number };
 }
 
-/** /api/history returns separate arrays */
 interface HistoryAPIResponse {
   osrs: HistoryPoint[];
   rs3: HistoryPoint[];
@@ -52,10 +50,6 @@ function bestRange(availability: AvailabilityMap): TimeRange | null {
   return null;
 }
 
-/**
- * Merge separate osrs[] and rs3[] history arrays into a single flat
- * HistoryPoint[] suitable for the ECharts PlayerChart component.
- */
 function mergeHistory(osrs: HistoryPoint[], rs3: HistoryPoint[]): HistoryPoint[] {
   const map = new Map<string, HistoryPoint>();
 
@@ -97,35 +91,37 @@ function mergeHistory(osrs: HistoryPoint[], rs3: HistoryPoint[]): HistoryPoint[]
 }
 
 // ---------------------------------------------------------------------------
-// Animated counter (eased count-up)
+// Animated spring counter
 // ---------------------------------------------------------------------------
 
-function AnimatedCounter({ value }: { value: number }) {
-  const [display, setDisplay] = useState(0);
+function SpringCounter({ value }: { value: number }) {
+  const spring = useSpring(0, { stiffness: 60, damping: 20 });
+  const display = useTransform(spring, (v) => Math.round(v).toLocaleString());
 
   useEffect(() => {
-    if (!value) return;
-    const duration = 1500;
-    const start = display;
-    const diff = value - start;
-    const startTime = performance.now();
+    spring.set(value);
+  }, [value, spring]);
 
-    let rafId: number;
-    function tick(now: number) {
-      const elapsed = now - startTime;
-      const pct = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - pct, 3); // ease-out cubic
-      setDisplay(Math.round(start + diff * eased));
-      if (pct < 1) rafId = requestAnimationFrame(tick);
-    }
-
-    rafId = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(rafId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value]);
-
-  return <span>{display.toLocaleString()}</span>;
+  return <motion.span>{display}</motion.span>;
 }
+
+// ---------------------------------------------------------------------------
+// Stagger container helper
+// ---------------------------------------------------------------------------
+
+const staggerContainer = {
+  hidden: {},
+  show: {
+    transition: {
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const staggerItem = {
+  hidden: { opacity: 0, y: 16 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 30 } },
+};
 
 // ---------------------------------------------------------------------------
 // Stat card config
@@ -172,23 +168,19 @@ const STAT_CARDS: StatCardConfig[] = [
 // ---------------------------------------------------------------------------
 
 export default function DashboardPage() {
-  // Data state
   const [latest, setLatest] = useState<PlayerCountData | null>(null);
   const [sparkline, setSparkline] = useState<SparklinePoint[] | null>(null);
   const [records, setRecords] = useState<RecordsAPIResponse | null>(null);
   const [accountTotal, setAccountTotal] = useState<AccountTotalResponse | null>(null);
 
-  // Chart state
   const [availability, setAvailability] = useState<AvailabilityMap | null>(null);
   const [selectedRange, setSelectedRange] = useState<TimeRange | null>(null);
   const [historyData, setHistoryData] = useState<HistoryPoint[] | null>(null);
   const [loadingChart, setLoadingChart] = useState(false);
 
-  // Global state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ----- Fetch summary data (latest, sparkline, records, accounts) ---------
   const fetchSummary = useCallback(async () => {
     try {
       const [latestRes, sparklineRes, recordsRes, accountsRes] = await Promise.all([
@@ -210,14 +202,12 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Poll summary every 60s
   useEffect(() => {
     fetchSummary();
     const id = setInterval(fetchSummary, 60_000);
     return () => clearInterval(id);
   }, [fetchSummary]);
 
-  // ----- Fetch availability (once) -----------------------------------------
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -239,7 +229,6 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, []);
 
-  // ----- Fetch history when range changes ----------------------------------
   useEffect(() => {
     if (!selectedRange) return;
     let cancelled = false;
@@ -267,7 +256,6 @@ export default function DashboardPage() {
     return () => { cancelled = true; };
   }, [selectedRange]);
 
-  // ----- Computed chart stats (min / max / avg) ----------------------------
   const chartStats = useMemo(() => {
     if (!historyData || historyData.length === 0) return null;
     const totals = historyData.map((d) => d.total_players).filter((n) => n > 0);
@@ -278,163 +266,265 @@ export default function DashboardPage() {
     return { min, max, avg };
   }, [historyData]);
 
-  // -----------------------------------------------------------------------
-  // Render
-  // -----------------------------------------------------------------------
   return (
-    <div className="max-w-[1200px] mx-auto px-4 py-6">
+    <div className="py-6">
       {/* Hero header */}
-      <div className="mb-8">
-        <h1 className="font-cinzel text-2xl font-bold gradient-text-gold">Dashboard</h1>
+      <motion.div
+        className="mb-8"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        <h1 className="font-cinzel text-3xl font-bold gradient-text-gold">Dashboard</h1>
         <p className="text-sm text-[#888888] mt-1">
           Real-time RuneScape player count monitoring
         </p>
         <div className="mt-3 h-px bg-gradient-to-r from-[#c8a84b]/30 via-[#c8a84b]/10 to-transparent" />
-      </div>
+      </motion.div>
 
       {error && (
         <div className="text-center text-[#e05c5c] py-4 mb-4">{error}</div>
       )}
 
       {/* ----------------------------------------------------------------- */}
-      {/* Row 1: 4 stat cards                                               */}
+      {/* Bento Grid                                                        */}
       {/* ----------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-6"
+      >
         {loading
           ? Array.from({ length: 4 }).map((_, i) => (
-              <Card key={i}>
-                <CardContent className="p-5 space-y-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-8 w-32" />
-                  <Skeleton className="h-[60px] w-full" />
-                </CardContent>
-              </Card>
+              <motion.div key={i} variants={staggerItem}>
+                <Card>
+                  <CardContent className="p-5 space-y-3">
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-[60px] w-full" />
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))
           : (
             <>
-              {STAT_CARDS.map((cfg) => {
-                const value = latest ? cfg.getValue(latest) : 0;
-                const delta = records ? cfg.getDelta(records) : 0;
-                const sparkData = sparkline ? cfg.getSparkline(sparkline) : [];
-                const isUp = delta >= 0;
+              {/* Hero Total Players card with gradient border */}
+              <motion.div variants={staggerItem} className="xl:col-span-2 xl:row-span-2">
+                <div className="gradient-border h-full">
+                  <Card className="h-full !rounded-2xl">
+                    <CardContent className="p-6 flex flex-col justify-between h-full">
+                      <div>
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
+                            Total Players Online
+                          </span>
+                          {records && (
+                            <Badge variant="default" className="text-[10px] gap-1">
+                              {records.delta.total >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                              {records.delta.total >= 0 ? "+" : ""}{formatCount(records.delta.total)}
+                            </Badge>
+                          )}
+                        </div>
 
-                return (
-                  <Card key={cfg.label} className="relative overflow-hidden">
-                    {/* Top accent bar */}
-                    <div
-                      className="absolute top-0 left-0 right-0 h-[2px]"
-                      style={{
-                        background: `linear-gradient(90deg, ${cfg.color}, ${cfg.color}80)`,
-                      }}
-                    />
-                    <CardContent className="p-5">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
-                          {cfg.label}
-                        </span>
-                        <Badge variant={cfg.badgeVariant} className="text-[10px] gap-1">
-                          {isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                          {isUp ? "+" : ""}{formatCount(delta)}
-                        </Badge>
+                        <div className="text-5xl font-bold gradient-text-gold mb-4 font-cinzel">
+                          {latest && latest.total_players > 0
+                            ? <SpringCounter value={latest.total_players} />
+                            : "\u2014"
+                          }
+                        </div>
                       </div>
 
-                      <div
-                        className="text-2xl font-bold mb-3"
-                        style={{ color: cfg.color }}
-                      >
-                        {value > 0 ? formatCount(value) : "\u2014"}
-                      </div>
-
-                      {sparkData.length > 0 && (
-                        <SparklineChart data={sparkData} color={cfg.color} height={60} />
+                      {sparkline && (
+                        <SparklineChart
+                          data={sparkline.map((p) => ({ x: p.timestamp, y: p.total_players }))}
+                          color={COLORS.gold}
+                          height={100}
+                        />
                       )}
                     </CardContent>
                   </Card>
-                );
-              })}
+                </div>
+              </motion.div>
+
+              {/* OSRS card */}
+              <motion.div variants={staggerItem}>
+                <Card className="relative overflow-hidden h-full">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, ${COLORS.osrs}, ${COLORS.osrs}80)` }}
+                  />
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
+                        OSRS Players
+                      </span>
+                      {records && (
+                        <Badge variant="osrs" className="text-[10px] gap-1">
+                          {records.delta.osrs >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                          {records.delta.osrs >= 0 ? "+" : ""}{formatCount(records.delta.osrs)}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-2xl font-bold mb-3" style={{ color: COLORS.osrs }}>
+                      {latest && latest.osrs > 0 ? formatCount(latest.osrs) : "\u2014"}
+                    </div>
+                    {sparkline && (
+                      <SparklineChart
+                        data={sparkline.map((p) => ({ x: p.timestamp, y: p.osrs }))}
+                        color={COLORS.osrs}
+                        height={60}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* RS3 card */}
+              <motion.div variants={staggerItem}>
+                <Card className="relative overflow-hidden h-full">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, ${COLORS.rs3}, ${COLORS.rs3}80)` }}
+                  />
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
+                        RS3 Players
+                      </span>
+                      {records && (
+                        <Badge variant="rs3" className="text-[10px] gap-1">
+                          {records.delta.rs3 >= 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
+                          {records.delta.rs3 >= 0 ? "+" : ""}{formatCount(records.delta.rs3)}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-2xl font-bold mb-3" style={{ color: COLORS.rs3 }}>
+                      {latest && latest.rs3 > 0 ? formatCount(latest.rs3) : "\u2014"}
+                    </div>
+                    {sparkline && (
+                      <SparklineChart
+                        data={sparkline.map((p) => ({ x: p.timestamp, y: p.rs3 }))}
+                        color={COLORS.rs3}
+                        height={60}
+                      />
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
 
               {/* Total accounts card */}
-              <Card className="relative overflow-hidden">
-                <div
-                  className="absolute top-0 left-0 right-0 h-[2px]"
-                  style={{
-                    background: `linear-gradient(90deg, ${COLORS.green}, ${COLORS.green}80)`,
-                  }}
-                />
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users size={14} style={{ color: COLORS.green }} />
-                    <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
-                      Total RS Accounts
-                    </span>
-                  </div>
-                  <div className="text-2xl font-bold" style={{ color: COLORS.green }}>
-                    {accountTotal?.total ? (
-                      <AnimatedCounter value={accountTotal.total} />
-                    ) : (
-                      "\u2014"
-                    )}
-                  </div>
-                  <p className="text-xs text-[#666666] mt-1">All time accounts created</p>
-                </CardContent>
-              </Card>
+              <motion.div variants={staggerItem}>
+                <Card className="relative overflow-hidden h-full">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, ${COLORS.green}, ${COLORS.green}80)` }}
+                  />
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users size={14} style={{ color: COLORS.green }} />
+                      <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
+                        Total RS Accounts
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold" style={{ color: COLORS.green }}>
+                      {accountTotal?.total ? (
+                        <SpringCounter value={accountTotal.total} />
+                      ) : (
+                        "\u2014"
+                      )}
+                    </div>
+                    <p className="text-xs text-[#666666] mt-1">All time accounts created</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+
+              {/* Peak card */}
+              <motion.div variants={staggerItem}>
+                <Card className="relative overflow-hidden h-full">
+                  <div
+                    className="absolute top-0 left-0 right-0 h-[2px]"
+                    style={{ background: `linear-gradient(90deg, ${COLORS.gold}, transparent)` }}
+                  />
+                  <CardContent className="p-5">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trophy size={14} className="text-[#c8a84b]" />
+                      <span className="text-xs uppercase tracking-wide font-medium text-[#888888]">
+                        All-Time Peak
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-[#c8a84b]">
+                      {records ? formatCount(records.peaks.total) : "\u2014"}
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
             </>
           )}
-      </div>
+      </motion.div>
 
       {/* ----------------------------------------------------------------- */}
-      {/* Row 2: Main chart with range buttons + stats                      */}
+      {/* Main Chart                                                        */}
       {/* ----------------------------------------------------------------- */}
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>Player Count History</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {availability && selectedRange && (
-            <RangeButtons
-              availability={availability}
-              selected={selectedRange}
-              onSelect={setSelectedRange}
-            />
-          )}
-
-          <div className="mt-2 min-h-[420px]">
-            {loadingChart ? (
-              <LoadingSpinner className="py-20" />
-            ) : historyData && historyData.length > 0 && selectedRange ? (
-              <PlayerChart data={historyData} range={selectedRange} />
-            ) : (
-              <p className="text-center text-[#666666] py-16">No data available.</p>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.3 }}
+      >
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>Player Count History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {availability && selectedRange && (
+              <RangeButtons
+                availability={availability}
+                selected={selectedRange}
+                onSelect={setSelectedRange}
+              />
             )}
-          </div>
 
-          {/* Small stats bar beneath chart */}
-          {chartStats && (
-            <div className="mt-4 grid grid-cols-3 gap-4 border-t border-[#1a2048] pt-4">
-              {[
-                { label: "Min", value: chartStats.min, color: COLORS.rs3 },
-                { label: "Avg", value: chartStats.avg, color: COLORS.gold },
-                { label: "Max", value: chartStats.max, color: COLORS.green },
-              ].map((s) => (
-                <div key={s.label} className="text-center">
-                  <div className="text-xs text-[#888888] uppercase tracking-wide mb-1">
-                    {s.label}
-                  </div>
-                  <div className="text-lg font-semibold" style={{ color: s.color }}>
-                    {formatCount(s.value)}
-                  </div>
-                </div>
-              ))}
+            <div className="mt-2 min-h-[420px]">
+              {loadingChart ? (
+                <LoadingSpinner className="py-20" />
+              ) : historyData && historyData.length > 0 && selectedRange ? (
+                <PlayerChart data={historyData} range={selectedRange} />
+              ) : (
+                <p className="text-center text-[#666666] py-16">No data available.</p>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {chartStats && (
+              <div className="mt-4 grid grid-cols-3 gap-4 border-t border-white/[0.06] pt-4">
+                {[
+                  { label: "Min", value: chartStats.min, color: COLORS.rs3 },
+                  { label: "Avg", value: chartStats.avg, color: COLORS.gold },
+                  { label: "Max", value: chartStats.max, color: COLORS.green },
+                ].map((s) => (
+                  <div key={s.label} className="text-center">
+                    <div className="text-xs text-[#888888] uppercase tracking-wide mb-1">
+                      {s.label}
+                    </div>
+                    <div className="text-lg font-semibold" style={{ color: s.color }}>
+                      {formatCount(s.value)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* ----------------------------------------------------------------- */}
-      {/* Row 3: Status card + Quick records                                */}
+      {/* Bottom row: Status + Peaks                                        */}
       {/* ----------------------------------------------------------------- */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Status card */}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 200, damping: 25, delay: 0.4 }}
+      >
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Status</CardTitle>
@@ -460,7 +550,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Quick records */}
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">All-Time Peaks</CardTitle>
@@ -490,7 +579,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 }

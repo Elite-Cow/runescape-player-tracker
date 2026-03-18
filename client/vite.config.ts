@@ -20,13 +20,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           echarts: ["echarts", "echarts-for-react"],
-          radix: [
-            "@radix-ui/react-tabs",
-            "@radix-ui/react-select",
-            "@radix-ui/react-tooltip",
-            "@radix-ui/react-separator",
-            "@radix-ui/react-slot",
-          ],
+          "framer-motion": ["framer-motion"],
         },
       },
     },
