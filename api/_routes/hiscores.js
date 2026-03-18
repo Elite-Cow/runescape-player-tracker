@@ -92,4 +92,32 @@ router.get("/:game/:player", async (req, res) => {
   }
 });
 
+// GET /api/hiscores/ranking/:game?table=0&size=50
+router.get("/ranking/:game", async (req, res) => {
+  const { game } = req.params;
+  const { table = 0, size = 50 } = req.query;
+
+  if (!["osrs", "rs3"].includes(game)) {
+    return res.status(400).json({ error: "Game must be 'osrs' or 'rs3'" });
+  }
+
+  const clampedSize = Math.min(Math.max(1, parseInt(size, 10) || 50), 50);
+  const cacheKey = `ranking:${game}:${table}:${clampedSize}`;
+  const cached = getCached(cacheKey);
+  if (cached) return res.json(cached);
+
+  try {
+    const base = game === "osrs"
+      ? "https://secure.runescape.com/m=hiscore_oldschool"
+      : "https://secure.runescape.com/m=hiscore";
+    const url = `${base}/ranking.json?table=${encodeURIComponent(table)}&category=0&size=${clampedSize}`;
+    const body = await fetchUrl(url);
+    const data = JSON.parse(body);
+    setCache(cacheKey, data);
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

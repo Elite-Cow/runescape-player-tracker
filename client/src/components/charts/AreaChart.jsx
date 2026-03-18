@@ -33,7 +33,7 @@ export default function AreaChart({ data, range }) {
 
     const createGradient = (color) => {
       const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-      gradient.addColorStop(0, color + "40");
+      gradient.addColorStop(0, color + "50");
       gradient.addColorStop(1, color + "05");
       return gradient;
     };
@@ -56,6 +56,8 @@ export default function AreaChart({ data, range }) {
             borderColor: "#5ba3f5",
             backgroundColor: createGradient("#5ba3f5"),
             pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "#5ba3f5",
             borderWidth: 2,
             tension: 0.3,
             fill: true,
@@ -66,6 +68,8 @@ export default function AreaChart({ data, range }) {
             borderColor: "#e05c5c",
             backgroundColor: createGradient("#e05c5c"),
             pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: "#e05c5c",
             borderWidth: 2,
             tension: 0.3,
             fill: true,
@@ -77,8 +81,16 @@ export default function AreaChart({ data, range }) {
         maintainAspectRatio: true,
         interaction: { mode: "index", intersect: false },
         plugins: {
-          legend: { labels: { color: "#e0e0e0" } },
+          legend: { display: false },
           tooltip: {
+            backgroundColor: "rgba(15,15,15,0.95)",
+            borderColor: "rgba(255,255,255,0.1)",
+            borderWidth: 1,
+            titleColor: "#e0e0e0",
+            bodyColor: "#aaa",
+            padding: 12,
+            cornerRadius: 8,
+            boxPadding: 4,
             callbacks: {
               title: (items) => new Date(items[0].parsed.x).toLocaleString(),
               label: (item) => `${item.dataset.label}: ${formatCount(item.parsed.y)}`,
@@ -90,11 +102,11 @@ export default function AreaChart({ data, range }) {
             type: "time",
             time: { unit: timeUnits[range] || "day" },
             ticks: { color: "#888", maxTicksLimit: 8 },
-            grid: { color: "#222" },
+            grid: { color: "rgba(255,255,255,0.04)" },
           },
           y: {
             ticks: { color: "#888", callback: (v) => formatCount(v) },
-            grid: { color: "#222" },
+            grid: { color: "rgba(255,255,255,0.04)" },
           },
         },
       },
@@ -108,5 +120,20 @@ export default function AreaChart({ data, range }) {
     };
   }, [data, range]);
 
-  return <canvas ref={canvasRef} />;
+  return (
+    <div>
+      <div className="flex items-center justify-center gap-6 mb-3">
+        {[
+          { label: "OSRS", color: "#5ba3f5" },
+          { label: "RS3", color: "#e05c5c" },
+        ].map(({ label, color }) => (
+          <div key={label} className="flex items-center gap-2 text-xs text-text-secondary">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: color, boxShadow: `0 0 6px ${color}60` }} />
+            {label}
+          </div>
+        ))}
+      </div>
+      <canvas ref={canvasRef} />
+    </div>
+  );
 }

@@ -16,29 +16,30 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
     pages.push(i);
   }
 
-  const btnClass = (active, disabled) => `
-    px-3 py-1.5 text-sm rounded transition-colors
-    ${disabled
-      ? "text-text-dim cursor-not-allowed"
-      : active
-        ? "bg-gold text-bg-dark font-semibold"
-        : "text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer"
-    }
-  `;
-
   return (
     <div className="flex items-center justify-center gap-1 mt-4">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={btnClass(false, currentPage === 1)}
+        className={`
+          px-3 py-1.5 text-sm rounded-full transition-all duration-200
+          ${currentPage === 1
+            ? "text-text-dim cursor-not-allowed"
+            : "text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer hover:-translate-y-0.5"
+          }
+        `}
       >
         <ChevronLeft size={16} />
       </button>
 
       {start > 1 && (
         <>
-          <button onClick={() => onPageChange(1)} className={btnClass(false, false)}>1</button>
+          <button
+            onClick={() => onPageChange(1)}
+            className="px-3 py-1.5 text-sm rounded-full text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer transition-all duration-200"
+          >
+            1
+          </button>
           {start > 2 && <span className="text-text-dim px-1">...</span>}
         </>
       )}
@@ -47,7 +48,17 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         <button
           key={p}
           onClick={() => onPageChange(p)}
-          className={btnClass(p === currentPage, false)}
+          className={`
+            px-3 py-1.5 text-sm rounded-full transition-all duration-200
+            ${p === currentPage
+              ? "font-semibold text-bg-dark"
+              : "text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer hover:-translate-y-0.5"
+            }
+          `}
+          style={p === currentPage ? {
+            background: "linear-gradient(135deg, #c8a84b, #e8c86b)",
+            boxShadow: "0 0 12px rgba(200,168,75,0.2)",
+          } : undefined}
         >
           {p}
         </button>
@@ -56,7 +67,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       {end < totalPages && (
         <>
           {end < totalPages - 1 && <span className="text-text-dim px-1">...</span>}
-          <button onClick={() => onPageChange(totalPages)} className={btnClass(false, false)}>
+          <button
+            onClick={() => onPageChange(totalPages)}
+            className="px-3 py-1.5 text-sm rounded-full text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer transition-all duration-200"
+          >
             {totalPages}
           </button>
         </>
@@ -65,7 +79,13 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={btnClass(false, currentPage === totalPages)}
+        className={`
+          px-3 py-1.5 text-sm rounded-full transition-all duration-200
+          ${currentPage === totalPages
+            ? "text-text-dim cursor-not-allowed"
+            : "text-text-secondary hover:text-text-primary hover:bg-white/5 cursor-pointer hover:-translate-y-0.5"
+          }
+        `}
       >
         <ChevronRight size={16} />
       </button>

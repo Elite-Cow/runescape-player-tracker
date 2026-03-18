@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PlayerChart from "../components/PlayerChart";
 import RangeButtons from "../components/RangeButtons";
+import LoadingSpinner from "../components/common/LoadingSpinner";
 import { buildTotalData } from "../buildTotal";
 
 const RANGES = ["all", "1y", "6m", "30d", "7d", "24h"];
@@ -18,6 +19,12 @@ function bestRange(availability) {
   }
   return null;
 }
+
+const PEAK_CONFIG = [
+  { key: "total", label: "Peak Total", color: "text-gold", borderColor: "border-gold/30" },
+  { key: "osrs", label: "Peak OSRS", color: "text-osrs", borderColor: "border-osrs/30" },
+  { key: "rs3", label: "Peak RS3", color: "text-rs3", borderColor: "border-rs3/30" },
+];
 
 export default function TrackerPage() {
   const [availability, setAvailability] = useState({});
@@ -81,29 +88,27 @@ export default function TrackerPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-[28px] font-bold text-gold mb-1.5">
+      <div className="text-center mb-8 animate-fade-in-up">
+        <h1 className="font-cinzel text-[28px] font-bold gradient-text-gold mb-1.5">
           RuneScape Player Tracker
         </h1>
         <p className="text-[13px] text-text-muted">
           Live data updated every hour
         </p>
+        <div className="mt-3 mx-auto w-32 h-[1px] bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
       </div>
 
       {peaks && (
-        <div className="flex justify-center gap-8 mb-7 flex-wrap">
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak Total</div>
-            <div className="text-[22px] font-bold text-gold">{formatCount(peaks.total)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak OSRS</div>
-            <div className="text-[22px] font-bold text-osrs">{formatCount(peaks.osrs)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak RS3</div>
-            <div className="text-[22px] font-bold text-rs3">{formatCount(peaks.rs3)}</div>
-          </div>
+        <div className="flex justify-center gap-4 mb-7 flex-wrap animate-fade-in-up stagger-2">
+          {PEAK_CONFIG.map(({ key, label, color, borderColor }) => (
+            <div
+              key={key}
+              className={`text-center bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg px-5 py-3 shadow-md border-l-2 ${borderColor}`}
+            >
+              <div className="text-xs text-text-muted uppercase tracking-wide">{label}</div>
+              <div className={`text-[22px] font-bold ${color}`}>{formatCount(peaks[key])}</div>
+            </div>
+          ))}
         </div>
       )}
 
@@ -113,11 +118,11 @@ export default function TrackerPage() {
         onSelect={setSelectedRange}
       />
 
-      <div className="bg-bg-card rounded-lg p-6">
+      <div className="bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-6 shadow-lg animate-fade-in-up stagger-3">
         {error ? (
           <div className="text-center text-rs3 py-10">{error}</div>
         ) : loadingChart || loadedRange !== selectedRange ? (
-          <div className="text-center text-text-muted py-10">Loading...</div>
+          <LoadingSpinner className="py-16" />
         ) : (
           <PlayerChart data={chartData} range={selectedRange} />
         )}

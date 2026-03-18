@@ -32,30 +32,33 @@ export default function StatsPanel({ chartData }) {
     .filter(Boolean);
 
   const rows = [
-    { label: "Total", color: "text-gold", stats: computeStats(totalVals) },
-    { label: "OSRS", color: "text-osrs", stats: computeStats(osrsVals) },
-    { label: "RS3", color: "text-rs3", stats: computeStats(rs3Vals) },
+    { label: "Total", dotColor: "bg-gold", color: "text-gold", stats: computeStats(totalVals) },
+    { label: "OSRS", dotColor: "bg-osrs", color: "text-osrs", stats: computeStats(osrsVals) },
+    { label: "RS3", dotColor: "bg-rs3", color: "text-rs3", stats: computeStats(rs3Vals) },
   ];
 
   return (
-    <div className="bg-bg-card rounded-lg p-5">
+    <div className="bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-5 shadow-md">
       <h3 className="text-sm font-semibold text-text-primary mb-4">Range Statistics</h3>
       <table className="w-full text-sm">
         <thead>
-          <tr className="text-text-muted text-xs uppercase tracking-wide">
-            <th className="text-left pb-3 font-medium">Metric</th>
-            <th className="text-right pb-3 font-medium">Min</th>
-            <th className="text-right pb-3 font-medium">Avg</th>
-            <th className="text-right pb-3 font-medium">Max</th>
+          <tr className="text-text-muted text-xs uppercase tracking-wide bg-black/20">
+            <th className="text-left pb-3 pt-2 px-3 font-medium rounded-tl-md">Metric</th>
+            <th className="text-right pb-3 pt-2 px-3 font-medium">Min</th>
+            <th className="text-right pb-3 pt-2 px-3 font-medium">Avg</th>
+            <th className="text-right pb-3 pt-2 px-3 font-medium rounded-tr-md">Max</th>
           </tr>
         </thead>
         <tbody>
-          {rows.map(({ label, color, stats }) => (
-            <tr key={label} className="border-t border-border">
-              <td className={`py-2.5 font-semibold ${color}`}>{label}</td>
-              <td className="py-2.5 text-right text-text-secondary">{formatCount(stats.min)}</td>
-              <td className="py-2.5 text-right text-text-secondary">{formatCount(stats.avg)}</td>
-              <td className="py-2.5 text-right text-text-secondary">{formatCount(stats.max)}</td>
+          {rows.map(({ label, dotColor, color, stats }) => (
+            <tr key={label} className="border-t border-border hover:bg-white/[0.04] transition-colors">
+              <td className={`py-2.5 px-3 font-semibold ${color} flex items-center gap-2`}>
+                <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />
+                {label}
+              </td>
+              <td className="py-2.5 px-3 text-right text-text-secondary">{formatCount(stats.min)}</td>
+              <td className="py-2.5 px-3 text-right text-text-secondary">{formatCount(stats.avg)}</td>
+              <td className="py-2.5 px-3 text-right text-text-secondary">{formatCount(stats.max)}</td>
             </tr>
           ))}
         </tbody>

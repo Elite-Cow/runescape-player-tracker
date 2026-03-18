@@ -1,5 +1,5 @@
 import React from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown, Trophy, ArrowDown } from "lucide-react";
 
 function formatCount(n) {
   if (n == null) return "\u2014";
@@ -19,11 +19,19 @@ function formatDate(ts) {
   });
 }
 
-function RecordCard({ label, icon: Icon, value, field, timestamp, color, iconColor }) {
+function RecordCard({ label, isPeak, value, timestamp, color, accentBorder }) {
+  const Icon = isPeak ? Trophy : ArrowDown;
+  const iconColor = isPeak ? "text-green" : "text-rs3";
+  const borderClass = isPeak ? "border-l-green/40" : "border-l-rs3/40";
+
   return (
-    <div className="bg-bg-card rounded-lg p-4">
+    <div className={`
+      bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-4
+      shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300
+      border-l-2 ${borderClass}
+    `}>
       <div className="flex items-center gap-2 mb-3">
-        <Icon size={16} className={iconColor} />
+        <Icon size={15} className={iconColor} />
         <span className="text-xs text-text-muted uppercase tracking-wide font-medium">
           {label}
         </span>
@@ -45,20 +53,22 @@ export default function HistoricalHighLow({ data }) {
   if (!peaks || !lows) return null;
 
   const records = [
-    { label: "Peak Total", icon: TrendingUp, value: peaks.total?.total_players, timestamp: peaks.total?.timestamp, color: "text-gold", iconColor: "text-green" },
-    { label: "Peak OSRS", icon: TrendingUp, value: peaks.osrs?.osrs, timestamp: peaks.osrs?.timestamp, color: "text-osrs", iconColor: "text-green" },
-    { label: "Peak RS3", icon: TrendingUp, value: peaks.rs3?.rs3, timestamp: peaks.rs3?.timestamp, color: "text-rs3", iconColor: "text-green" },
-    { label: "Low Total", icon: TrendingDown, value: lows.total?.total_players, timestamp: lows.total?.timestamp, color: "text-gold", iconColor: "text-rs3" },
-    { label: "Low OSRS", icon: TrendingDown, value: lows.osrs?.osrs, timestamp: lows.osrs?.timestamp, color: "text-osrs", iconColor: "text-rs3" },
-    { label: "Low RS3", icon: TrendingDown, value: lows.rs3?.rs3, timestamp: lows.rs3?.timestamp, color: "text-rs3", iconColor: "text-rs3" },
+    { label: "Peak Total", isPeak: true, value: peaks.total?.total_players, timestamp: peaks.total?.timestamp, color: "text-gold" },
+    { label: "Peak OSRS", isPeak: true, value: peaks.osrs?.osrs, timestamp: peaks.osrs?.timestamp, color: "text-osrs" },
+    { label: "Peak RS3", isPeak: true, value: peaks.rs3?.rs3, timestamp: peaks.rs3?.timestamp, color: "text-rs3" },
+    { label: "Low Total", isPeak: false, value: lows.total?.total_players, timestamp: lows.total?.timestamp, color: "text-gold" },
+    { label: "Low OSRS", isPeak: false, value: lows.osrs?.osrs, timestamp: lows.osrs?.timestamp, color: "text-osrs" },
+    { label: "Low RS3", isPeak: false, value: lows.rs3?.rs3, timestamp: lows.rs3?.timestamp, color: "text-rs3" },
   ];
 
   return (
     <div>
-      <h3 className="text-sm font-semibold text-text-primary mb-3">All-Time Records</h3>
+      <h3 className="font-cinzel text-base font-semibold text-text-primary mb-3">All-Time Records</h3>
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {records.map((r) => (
-          <RecordCard key={r.label} {...r} />
+        {records.map((r, i) => (
+          <div key={r.label} className={`animate-fade-in-up stagger-${i + 1}`}>
+            <RecordCard {...r} />
+          </div>
         ))}
       </div>
     </div>

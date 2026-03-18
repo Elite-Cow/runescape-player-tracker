@@ -28,7 +28,7 @@ export default function Layout({ children }) {
         onMobileClose={() => setMobileOpen(false)}
       />
       <MobileMenuButton onClick={() => setMobileOpen(true)} />
-      <main className="flex-1 min-w-0 pt-14 lg:pt-0">
+      <main className="flex-1 min-w-0 pt-14 lg:pt-0 bg-gradient-to-b from-bg-dark to-[#0a0a0a]">
         {children}
       </main>
     </div>

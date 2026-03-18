@@ -23,14 +23,27 @@ export default function SparklineChart({ data, color }) {
     }
 
     const ctx = canvasRef.current.getContext("2d");
+
+    // Main gradient fill — increased opacity
     const gradient = ctx.createLinearGradient(0, 0, 0, 60);
-    gradient.addColorStop(0, color + "30");
+    gradient.addColorStop(0, color + "50");
     gradient.addColorStop(1, color + "00");
 
     chartRef.current = new ChartJS(ctx, {
       type: "line",
       data: {
         datasets: [
+          // Glow shadow line (behind)
+          {
+            data,
+            borderColor: color + "40",
+            backgroundColor: "transparent",
+            borderWidth: 4,
+            pointRadius: 0,
+            tension: 0.3,
+            fill: false,
+          },
+          // Main line (on top)
           {
             data,
             borderColor: color,

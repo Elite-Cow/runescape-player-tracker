@@ -1,4 +1,5 @@
 import React from "react";
+import { Lock } from "lucide-react";
 
 const RANGES = ["24h", "7d", "30d", "6m", "1y", "all"];
 
@@ -14,17 +15,24 @@ export default function RangeButtons({ availability, selected, onSelect }) {
             disabled={disabled}
             onClick={() => !disabled && onSelect(range)}
             className={`
-              px-4 py-1.5 rounded text-sm border
-              transition-all duration-150
+              px-4 py-1.5 rounded-full text-sm
+              transition-all duration-200
               ${disabled
-                ? "border-border-light text-text-dim opacity-50 cursor-not-allowed"
+                ? "text-text-dim opacity-40 cursor-not-allowed border border-border-light/50"
                 : active
-                  ? "border-gold bg-gold text-bg-dark font-bold cursor-pointer"
-                  : "border-border-mid bg-transparent text-text-primary cursor-pointer hover:border-gold/50 hover:text-gold"
+                  ? "font-bold cursor-pointer text-bg-dark border border-gold"
+                  : "border border-border-mid bg-transparent text-text-primary cursor-pointer hover:border-gold/50 hover:text-gold hover:-translate-y-0.5"
               }
             `}
+            style={active ? {
+              background: "linear-gradient(135deg, #c8a84b, #e8c86b)",
+              boxShadow: "0 0 16px rgba(200,168,75,0.25)",
+            } : undefined}
           >
-            {range.toUpperCase()}
+            <span className="flex items-center gap-1.5">
+              {disabled && <Lock size={11} />}
+              {range.toUpperCase()}
+            </span>
           </button>
         );
       })}

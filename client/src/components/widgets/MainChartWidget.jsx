@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PlayerChart from "../PlayerChart";
 import RangeButtons from "../RangeButtons";
+import { SkeletonChart } from "../common/SkeletonLoader";
 import { buildTotalData } from "../../buildTotal";
 
 const RANGES = ["all", "1y", "6m", "30d", "7d", "24h"];
@@ -65,9 +66,11 @@ export default function MainChartWidget({ onDataLoaded }) {
   }, [selectedRange]);
 
   return (
-    <div className="bg-bg-card rounded-lg p-5">
+    <div className="bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-5 shadow-lg">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h3 className="text-sm font-semibold text-text-primary">Player Count History</h3>
+        <h3 className="font-cinzel text-base font-semibold text-text-primary">
+          Player Count History
+        </h3>
       </div>
 
       <RangeButtons
@@ -80,7 +83,7 @@ export default function MainChartWidget({ onDataLoaded }) {
         {error ? (
           <div className="text-center text-rs3 py-10">{error}</div>
         ) : loadingChart || loadedRange !== selectedRange ? (
-          <div className="text-center text-text-muted py-10">Loading...</div>
+          <SkeletonChart />
         ) : (
           <PlayerChart data={chartData} range={selectedRange} />
         )}

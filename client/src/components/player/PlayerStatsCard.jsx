@@ -8,46 +8,34 @@ function formatXp(xp) {
   return String(xp);
 }
 
+const STAT_CONFIG = [
+  { icon: User, label: "Player", getVal: (d) => d.player, color: "text-text-primary", iconBg: "bg-white/5", iconColor: "text-text-muted" },
+  { icon: Shield, label: "Combat Level", getVal: (d) => d.combatLevel, colorFn: (d) => d.game === "osrs" ? "text-osrs" : "text-gold", iconBg: "bg-osrs/10", iconColor: "text-osrs" },
+  { icon: Star, label: "Total Level", getVal: (d) => d.overall?.level ?? "\u2014", color: "text-green", iconBg: "bg-green/10", iconColor: "text-green" },
+  { icon: Swords, label: "Total XP", getVal: (d) => d.overall ? formatXp(d.overall.xp) : "\u2014", color: "text-orange", iconBg: "bg-orange/10", iconColor: "text-orange" },
+];
+
 export default function PlayerStatsCard({ data }) {
   if (!data) return null;
 
-  const stats = [
-    {
-      icon: User,
-      label: "Player",
-      value: data.player,
-      color: "text-text-primary",
-    },
-    {
-      icon: Shield,
-      label: "Combat Level",
-      value: data.combatLevel,
-      color: data.game === "osrs" ? "text-osrs" : "text-gold",
-    },
-    {
-      icon: Star,
-      label: "Total Level",
-      value: data.overall?.level ?? "\u2014",
-      color: "text-green",
-    },
-    {
-      icon: Swords,
-      label: "Total XP",
-      value: data.overall ? formatXp(data.overall.xp) : "\u2014",
-      color: "text-orange",
-    },
-  ];
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map(({ icon: Icon, label, value, color }) => (
-        <div key={label} className="bg-bg-card rounded-lg p-4 flex items-center gap-3">
-          <div className="p-2 rounded-md bg-white/5">
-            <Icon size={20} className="text-text-muted" />
+      {STAT_CONFIG.map(({ icon: Icon, label, getVal, color, colorFn, iconBg, iconColor }, i) => (
+        <div
+          key={label}
+          className={`
+            bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg p-4 flex items-center gap-3
+            shadow-md hover:shadow-lg hover:-translate-y-1
+            transition-all duration-300
+            animate-fade-in-up stagger-${i + 1}
+          `}
+        >
+          <div className={`p-2 rounded-md ${iconBg}`}>
+            <Icon size={20} className={`${iconColor} drop-shadow-[0_0_4px_currentColor]`} />
           </div>
           <div>
             <div className="text-xs text-text-muted uppercase tracking-wide">{label}</div>
-            <div className={`text-lg font-bold ${color}`}>{value}</div>
+            <div className={`text-lg font-bold ${colorFn ? colorFn(data) : color}`}>{getVal(data)}</div>
           </div>
         </div>
       ))}

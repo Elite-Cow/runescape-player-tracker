@@ -47,9 +47,9 @@ export default function RecordsTable({ data }) {
 
   const columns = [
     { key: "date", label: "Date" },
-    { key: "peakTotal", label: "Peak Total", color: "text-gold" },
-    { key: "peakOsrs", label: "Peak OSRS", color: "text-osrs" },
-    { key: "peakRs3", label: "Peak RS3", color: "text-rs3" },
+    { key: "peakTotal", label: "Peak Total", color: "text-gold", cellBg: "bg-gold/5" },
+    { key: "peakOsrs", label: "Peak OSRS", color: "text-osrs", cellBg: "bg-osrs/5" },
+    { key: "peakRs3", label: "Peak RS3", color: "text-rs3", cellBg: "bg-rs3/5" },
     { key: "avgTotal", label: "Avg Total" },
     { key: "avgOsrs", label: "Avg OSRS" },
     { key: "avgRs3", label: "Avg RS3" },
@@ -58,18 +58,18 @@ export default function RecordsTable({ data }) {
   const SortIcon = ({ field }) => {
     if (sortField !== field) return null;
     return sortDir === "asc" ? (
-      <ChevronUp size={14} className="inline ml-0.5" />
+      <ChevronUp size={14} className="inline ml-0.5 text-gold" />
     ) : (
-      <ChevronDown size={14} className="inline ml-0.5" />
+      <ChevronDown size={14} className="inline ml-0.5 text-gold" />
     );
   };
 
   return (
-    <div className="bg-bg-card rounded-lg overflow-hidden">
+    <div className="bg-gradient-to-br from-[#1e1e1e] to-bg-card rounded-lg overflow-hidden shadow-md">
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border">
+            <tr className="border-b border-border bg-black/30">
               {columns.map(({ key, label }) => (
                 <th
                   key={key}
@@ -84,21 +84,24 @@ export default function RecordsTable({ data }) {
             </tr>
           </thead>
           <tbody>
-            {pageData.map((row) => (
+            {pageData.map((row, i) => (
               <tr
                 key={row.date}
-                className="border-b border-border/50 hover:bg-white/[0.02] transition-colors"
+                className={`
+                  border-b border-border/50 hover:bg-white/[0.06] transition-colors
+                  ${i % 2 === 1 ? "bg-white/[0.01]" : ""}
+                `}
               >
                 <td className="px-4 py-2.5 text-text-primary font-medium">
                   {formatDate(row.date)}
                 </td>
-                <td className="px-4 py-2.5 text-right text-gold font-semibold">
+                <td className="px-4 py-2.5 text-right text-gold font-semibold bg-gold/5">
                   {formatCount(row.peakTotal)}
                 </td>
-                <td className="px-4 py-2.5 text-right text-osrs">
+                <td className="px-4 py-2.5 text-right text-osrs bg-osrs/5">
                   {formatCount(row.peakOsrs)}
                 </td>
-                <td className="px-4 py-2.5 text-right text-rs3">
+                <td className="px-4 py-2.5 text-right text-rs3 bg-rs3/5">
                   {formatCount(row.peakRs3)}
                 </td>
                 <td className="px-4 py-2.5 text-right text-text-secondary">
