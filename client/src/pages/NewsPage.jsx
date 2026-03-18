@@ -1,128 +1,5 @@
 import React, { useEffect, useState } from "react";
 
-const styles = {
-  wrapper: {
-    maxWidth: "1100px",
-    margin: "0 auto",
-    padding: "32px 16px",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: "24px",
-  },
-  title: {
-    fontSize: "28px",
-    fontWeight: "700",
-    color: "#c8a84b",
-    marginBottom: "6px",
-  },
-  subtitle: {
-    fontSize: "13px",
-    color: "#666",
-  },
-  filterRow: {
-    display: "flex",
-    gap: "10px",
-    marginBottom: "24px",
-    flexWrap: "wrap",
-    justifyContent: "center",
-  },
-  pill: (active) => ({
-    padding: "6px 16px",
-    borderRadius: "20px",
-    fontSize: "13px",
-    fontWeight: "600",
-    cursor: "pointer",
-    border: "1px solid",
-    borderColor: active ? "#c8a84b" : "#333",
-    background: active ? "#c8a84b" : "transparent",
-    color: active ? "#111" : "#666",
-  }),
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-    gap: "20px",
-  },
-  card: {
-    background: "#1a1a1a",
-    borderRadius: "8px",
-    overflow: "hidden",
-    display: "flex",
-    flexDirection: "column",
-  },
-  cardImage: {
-    width: "100%",
-    height: "160px",
-    objectFit: "cover",
-    display: "block",
-  },
-  cardBody: {
-    padding: "16px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-    flexGrow: 1,
-  },
-  tagRow: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  tag: (game) => ({
-    fontSize: "11px",
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: "0.08em",
-    padding: "3px 8px",
-    borderRadius: "4px",
-    background: game === "rs3" ? "rgba(200,168,75,0.12)" : "rgba(91,163,245,0.12)",
-    color: game === "rs3" ? "#c8a84b" : "#5ba3f5",
-    border: `1px solid ${game === "rs3" ? "rgba(200,168,75,0.4)" : "rgba(91,163,245,0.4)"}`,
-  }),
-  date: {
-    fontSize: "12px",
-    color: "#555",
-  },
-  cardTitle: {
-    fontSize: "15px",
-    fontWeight: "700",
-    color: "#e0e0e0",
-    lineHeight: "1.4",
-  },
-  sourceName: {
-    fontSize: "12px",
-    color: "#555",
-  },
-  excerpt: {
-    fontSize: "13px",
-    color: "#888",
-    lineHeight: "1.6",
-    flexGrow: 1,
-  },
-  readMore: {
-    fontSize: "13px",
-    color: "#c8a84b",
-    textDecoration: "none",
-    fontWeight: "600",
-    alignSelf: "flex-start",
-  },
-  loading: {
-    textAlign: "center",
-    color: "#666",
-    padding: "80px 40px",
-  },
-  error: {
-    textAlign: "center",
-    color: "#e05c5c",
-    padding: "80px 40px",
-  },
-  empty: {
-    textAlign: "center",
-    color: "#666",
-    padding: "80px 40px",
-  },
-};
-
 const FILTER_OPTIONS = [
   { key: "official", label: "Official" },
   { key: "youtube",  label: "YouTube" },
@@ -175,63 +52,90 @@ export default function NewsPage() {
   const filtered = articles.filter((a) => activeFilters.has(a.sourceType));
 
   return (
-    <div style={styles.wrapper}>
-      <div style={styles.header}>
-        <div style={styles.title}>RuneScape News</div>
-        <div style={styles.subtitle}>Latest updates from RS3 and Old School RuneScape</div>
+    <div className="max-w-[1100px] mx-auto px-4 py-8">
+      <div className="text-center mb-6">
+        <h1 className="text-[28px] font-bold text-gold mb-1.5">
+          RuneScape News
+        </h1>
+        <p className="text-[13px] text-text-muted">
+          Latest updates from RS3 and Old School RuneScape
+        </p>
       </div>
 
-      <div style={styles.filterRow}>
-        {FILTER_OPTIONS.map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => toggleFilter(key)}
-            style={styles.pill(activeFilters.has(key))}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="flex gap-2.5 mb-6 flex-wrap justify-center">
+        {FILTER_OPTIONS.map(({ key, label }) => {
+          const active = activeFilters.has(key);
+          return (
+            <button
+              key={key}
+              onClick={() => toggleFilter(key)}
+              className={`
+                px-4 py-1.5 rounded-full text-[13px] font-semibold
+                border transition-all duration-150 cursor-pointer
+                ${active
+                  ? "border-gold bg-gold text-bg-sidebar"
+                  : "border-border-light bg-transparent text-text-muted hover:border-border-mid hover:text-text-primary"
+                }
+              `}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
-        <div style={styles.loading}>Loading articles...</div>
+        <div className="text-center text-text-muted py-20">Loading articles...</div>
       ) : error ? (
-        <div style={styles.error}>{error}</div>
+        <div className="text-center text-rs3 py-20">{error}</div>
       ) : filtered.length === 0 ? (
-        <div style={styles.empty}>No articles found.</div>
+        <div className="text-center text-text-muted py-20">No articles found.</div>
       ) : (
-        <div style={styles.grid}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(300px,1fr))] gap-5">
           {filtered.map((article) => (
-            <div key={article.link} style={styles.card}>
+            <div key={article.link} className="bg-bg-card rounded-lg overflow-hidden flex flex-col">
               {article.image && (
                 <img
                   src={article.image}
                   alt={article.title}
-                  style={styles.cardImage}
+                  className="w-full h-40 object-cover block"
                   loading="lazy"
                 />
               )}
-              <div style={styles.cardBody}>
-                <div style={styles.tagRow}>
-                  <span style={styles.tag(article.game)}>
+              <div className="p-4 flex flex-col gap-2.5 grow">
+                <div className="flex items-center justify-between">
+                  <span
+                    className={`
+                      text-[11px] font-bold uppercase tracking-wider
+                      px-2 py-0.5 rounded border
+                      ${article.game === "rs3"
+                        ? "bg-gold-dim text-gold border-gold/40"
+                        : "bg-osrs-dim text-osrs border-osrs/40"
+                      }
+                    `}
+                  >
                     {article.game === "rs3" ? "RS3" : "OSRS"}
                   </span>
-                  <span style={styles.date}>{formatDate(article.pubDate)}</span>
+                  <span className="text-xs text-border-mid">{formatDate(article.pubDate)}</span>
                 </div>
-                <div style={styles.cardTitle}>{article.title}</div>
+                <div className="text-[15px] font-bold text-text-primary leading-snug">
+                  {article.title}
+                </div>
                 {article.sourceName && (
-                  <div style={styles.sourceName}>{article.sourceName}</div>
+                  <div className="text-xs text-border-mid">{article.sourceName}</div>
                 )}
                 {article.description && (
-                  <div style={styles.excerpt}>{article.description}</div>
+                  <div className="text-[13px] text-text-secondary leading-relaxed grow">
+                    {article.description}
+                  </div>
                 )}
                 <a
                   href={article.link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={styles.readMore}
+                  className="text-[13px] text-gold font-semibold no-underline hover:underline self-start"
                 >
-                  Read more →
+                  Read more &rarr;
                 </a>
               </div>
             </div>

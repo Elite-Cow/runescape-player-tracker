@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #c8a84b;
+  --color-gold-dim: rgba(200, 168, 75, 0.12);
+  --color-osrs: #5ba3f5;
+  --color-osrs-dim: rgba(91, 163, 245, 0.12);
+  --color-rs3: #e05c5c;
+  --color-rs3-dim: rgba(224, 92, 92, 0.12);
+  --color-green: #1bb37c;
+  --color-orange: #ffab00;
+  --color-bg-dark: #0e0e0e;
+  --color-bg-card: #1a1a1a;
+  --color-bg-sidebar: #111111;
+  --color-border: #222222;
+  --color-border-light: #333333;
+  --color-border-mid: #555555;
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #888888;
+  --color-text-muted: #666666;
+  --color-text-dim: #444444;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Noto Sans", system-ui, sans-serif;
+  background: var(--color-bg-dark);
+  color: var(--color-text-primary);
+  min-height: 100vh;
+}
+
+/* Scrollbar styling for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-light);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-mid);
+}

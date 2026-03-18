@@ -37,7 +37,7 @@ export default function PlayerChart({ data, range }) {
   const rs3Points  = data?.rs3  ?? [];
 
   if (osrsPoints.length === 0 && rs3Points.length === 0) {
-    return <p style={{ textAlign: "center", color: "#666" }}>No data available.</p>;
+    return <p className="text-center text-text-muted">No data available.</p>;
   }
 
   const chartData = {

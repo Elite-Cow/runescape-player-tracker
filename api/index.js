@@ -7,6 +7,10 @@ const historyRouter = require("./routes/history");
 const availabilityRouter = require("./routes/availability");
 const rs3testRouter = require("./routes/rs3test");
 const newsRouter = require("./routes/news");
+const recordsRouter = require("./routes/records");
+const sparklineRouter = require("./routes/sparkline");
+const hiscoresRouter = require("./routes/hiscores");
+const recordsHistoryRouter = require("./routes/records-history");
 
 const app = express();
 
@@ -18,6 +22,10 @@ app.use("/api/history", historyRouter);
 app.use("/api/availability", availabilityRouter);
 app.use("/api/rs3test", rs3testRouter);
 app.use("/api/news", newsRouter);
+app.use("/api/records", recordsRouter);
+app.use("/api/sparkline", sparklineRouter);
+app.use("/api/hiscores", hiscoresRouter);
+app.use("/api/records", recordsHistoryRouter);
 
 app.use((req, res) => {
   res.status(404).json({ error: "Not found" });

@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from "react";
-import PlayerChart from "../components/PlayerChart";
-import RangeButtons from "../components/RangeButtons";
-import { buildTotalData } from "../buildTotal";
+import PlayerChart from "../PlayerChart";
+import RangeButtons from "../RangeButtons";
+import { buildTotalData } from "../../buildTotal";
 
 const RANGES = ["all", "1y", "6m", "30d", "7d", "24h"];
-
-function formatCount(n) {
-  if (n == null) return "\u2014";
-  if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + "M";
-  if (n >= 1_000) return (n / 1_000).toFixed(1) + "K";
-  return String(n);
-}
 
 function bestRange(availability) {
   for (const range of RANGES) {
@@ -19,12 +12,11 @@ function bestRange(availability) {
   return null;
 }
 
-export default function TrackerPage() {
+export default function MainChartWidget({ onDataLoaded }) {
   const [availability, setAvailability] = useState({});
   const [selectedRange, setSelectedRange] = useState(null);
   const [loadedRange, setLoadedRange] = useState(null);
   const [chartData, setChartData] = useState(null);
-  const [peaks, setPeaks] = useState(null);
   const [loadingChart, setLoadingChart] = useState(false);
   const [error, setError] = useState(null);
 
@@ -37,7 +29,7 @@ export default function TrackerPage() {
         setAvailability(avail);
         const range = avail["24h"] ? "24h" : bestRange(avail);
         if (range) setSelectedRange(range);
-        else setError("No data available yet. Check back soon.");
+        else setError("No data available yet.");
       } catch (err) {
         setError(err.message);
       }
@@ -61,14 +53,7 @@ export default function TrackerPage() {
 
         setChartData(data);
         setLoadedRange(selectedRange);
-        const osrsPoints  = data.osrs ?? [];
-        const rs3Points   = data.rs3  ?? [];
-        const totalPoints = buildTotalData(osrsPoints, rs3Points);
-        setPeaks({
-          total: totalPoints.length ? Math.max(...totalPoints.map((d) => d.y)) : 0,
-          osrs:  osrsPoints.length  ? Math.max(...osrsPoints.map((d) => d.osrs)) : 0,
-          rs3:   rs3Points.length   ? Math.max(...rs3Points.map((d) => d.rs3))  : 0,
-        });
+        if (onDataLoaded) onDataLoaded(data);
       } catch (err) {
         if (!cancelled) setError(err.message);
       } finally {
@@ -80,32 +65,10 @@ export default function TrackerPage() {
   }, [selectedRange]);
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-[28px] font-bold text-gold mb-1.5">
-          RuneScape Player Tracker
-        </h1>
-        <p className="text-[13px] text-text-muted">
-          Live data updated every hour
-        </p>
+    <div className="bg-bg-card rounded-lg p-5">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <h3 className="text-sm font-semibold text-text-primary">Player Count History</h3>
       </div>
-
-      {peaks && (
-        <div className="flex justify-center gap-8 mb-7 flex-wrap">
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak Total</div>
-            <div className="text-[22px] font-bold text-gold">{formatCount(peaks.total)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak OSRS</div>
-            <div className="text-[22px] font-bold text-osrs">{formatCount(peaks.osrs)}</div>
-          </div>
-          <div className="text-center">
-            <div className="text-xs text-text-muted uppercase tracking-wide">Peak RS3</div>
-            <div className="text-[22px] font-bold text-rs3">{formatCount(peaks.rs3)}</div>
-          </div>
-        </div>
-      )}
 
       <RangeButtons
         availability={availability}
@@ -113,7 +76,7 @@ export default function TrackerPage() {
         onSelect={setSelectedRange}
       />
 
-      <div className="bg-bg-card rounded-lg p-6">
+      <div className="mt-2">
         {error ? (
           <div className="text-center text-rs3 py-10">{error}</div>
         ) : loadingChart || loadedRange !== selectedRange ? (
